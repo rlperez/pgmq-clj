@@ -1,31 +1,35 @@
 (ns com.thirstysink.pgmq-clj.db.adapters.hikari-adapter
   (:require [next.jdbc :as jdbc]
+            [next.jdbc.result-set :as rs]
             [com.thirstysink.pgmq-clj.db.adapter :as adapter])
   (:import [com.zaxxer.hikari HikariDataSource]))
 
 (defrecord HikariAdapter [datasource]
   adapter/Adapter
 
-  ;; Provide a connection from the Hikari datasource
-  (get-connection [this]
-    (.getConnection (:datasource this)))
-
-  ;; Execute a SQL command
   (execute! [this sql params]
-    (jdbc/execute! (:datasource this) [sql params]))
+    (println "Executing SQL:" sql "with params:" params)
+    (jdbc/execute! (:datasource this)
+                   (if (seq params)
+                     [sql params]
+                     [sql])))
 
-  ;; Query the database
   (query [this sql params]
-    (jdbc/execute! (:datasource this) [sql params] {:builder-fn jdbc/unqualified-snake-kebab-opts}))
+    (println "Querying SQL:" sql "with params:" params)
+    (jdbc/execute! (:datasource this)
+                   (if (seq params)
+                     [sql params]
+                     [sql])
+                   {:builder-fn rs/as-unqualified-lower-maps}))
 
-  ;; Run a transaction
   (with-transaction [this f]
     (jdbc/with-transaction [tx (:datasource this)]
-      (f tx))))
+      (f (assoc this :datasource tx))))
 
-;; Factory function to create a HikariAdapter
-(defn make-hikari-adapter
-  [config]
+  (close [this]
+    (.close (:datasource this))))
+
+(defn make-hikari-adapter [config]
   (let [datasource (doto (HikariDataSource.)
                      (.setJdbcUrl (:jdbc-url config))
                      (.setUsername (:username config))
