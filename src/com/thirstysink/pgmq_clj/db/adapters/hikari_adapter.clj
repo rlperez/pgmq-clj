@@ -8,14 +8,12 @@
   adapter/Adapter
 
   (execute! [this sql params]
-    (println "Executing SQL:" sql "with params:" params)
     (jdbc/execute! (:datasource this)
                    (if (seq params)
                      [sql params]
                      [sql])))
 
   (query [this sql params]
-    (println "Querying SQL:" sql "with params:" params)
     (jdbc/execute! (:datasource this)
                    (if (seq params)
                      [sql params]
