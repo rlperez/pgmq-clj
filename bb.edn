@@ -28,7 +28,4 @@
                             (clojure {:dir "."} "-M:outdated"))}
 
          format    {:doc  "Formats codebase"
-                    :task (try
-                            (shell {:dir "src"} "cljstyle fix")
-                            (catch Exception _
-                              (clojure {:dir "src"} "-M:dev -m cljstyle.main fix")))}}}
+                    :task (shell {:dir "src"} "cljfmt fix")}}}
