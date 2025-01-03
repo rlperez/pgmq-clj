@@ -1,23 +1,11 @@
 (ns com.thirstysink.pgmq-clj.db.adapters.hikari-adapter-test
   (:require [clojure.test :refer [deftest is use-fixtures]]
             [com.thirstysink.pgmq-clj.db.adapter :as adapter]
-            [com.thirstysink.pgmq-clj.db.adapters.hikari-adapter :as hikari])
+            [com.thirstysink.util.db :as db])
   (:import [org.testcontainers.containers PostgreSQLContainer]))
 
 ;; Create a PostgreSQL container for testing
 (defonce container (PostgreSQLContainer. "postgres:17-alpine"))
-
-(defn start-postgres-container []
-  (.start container)
-  {:jdbc-url (.getJdbcUrl container)
-   :username (.getUsername container)
-   :password (.getPassword container)})
-
-(defn setup-adapter []
-  (hikari/make-hikari-adapter (start-postgres-container)))
-
-(defn stop-postgres-container []
-  (.stop container))
 
 (defn reset-table [adapter]
   (let [drop-table-sql "DROP TABLE IF EXISTS test_table;"
@@ -27,19 +15,19 @@
 
 (use-fixtures :once
   (fn [tests]
-    (start-postgres-container)
+    (db/start-postgres-container container)
     (tests)
-    (stop-postgres-container)))
+    (db/stop-postgres-container container)))
 
 (use-fixtures :each
   (fn [tests]
-    (let [adapter (setup-adapter)]
+    (let [adapter (db/setup-adapter container)]
       ;; Reset the table before each test
       (reset-table adapter)
       (tests))))
 
 (deftest postgres-adapter-basic-test
-  (let [adapter (setup-adapter)
+  (let [adapter (db/setup-adapter container)
         insert-sql "INSERT INTO test_table (name) VALUES (?);"
         select-sql "SELECT * FROM test_table;"]
 
@@ -53,7 +41,7 @@
     (adapter/close adapter)))
 
 (deftest postgres-adapter-transaction-test
-  (let [adapter (setup-adapter)
+  (let [adapter (db/setup-adapter container)
         insert-sql "INSERT INTO test_table (name) VALUES (?);"
         select-sql "SELECT * FROM test_table;"]
 
@@ -69,7 +57,7 @@
     (adapter/close adapter)))
 
 (deftest postgres-adapter-transaction-rollback-test
-  (let [adapter (setup-adapter)
+  (let [adapter (db/setup-adapter container)
         insert-sql "INSERT INTO test_table (name) VALUES (?);"
         select-sql "SELECT * FROM test_table;"]
 
