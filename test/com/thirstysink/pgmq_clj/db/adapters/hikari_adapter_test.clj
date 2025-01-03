@@ -1,62 +1,78 @@
 (ns com.thirstysink.pgmq-clj.db.adapters.hikari-adapter-test
-  (:require [clojure.test :refer [deftest is]]
+  (:require [clojure.test :refer [deftest is use-fixtures]]
             [com.thirstysink.pgmq-clj.db.adapter :as adapter]
-            [com.thirstysink.pgmq-clj.db.adapters.hikari-adapter :as hikari]))
+            [com.thirstysink.pgmq-clj.db.adapters.hikari-adapter :as hikari])
+  (:import [org.testcontainers.containers PostgreSQLContainer]))
 
-(def sqlite-config {:jdbc-url "jdbc:sqlite::memory:"})
+;; Create a PostgreSQL container for testing
+(defonce container (PostgreSQLContainer. "postgres:17-alpine"))
 
-(deftest sqlite-adapter-basic-test
-  (let [adapter (hikari/make-hikari-adapter sqlite-config)
-        create-table-sql "CREATE TABLE test_table (id INTEGER PRIMARY KEY, name TEXT);"
+(defn start-postgres-container []
+  (.start container)
+  {:jdbc-url (.getJdbcUrl container)
+   :username (.getUsername container)
+   :password (.getPassword container)})
+
+(defn setup-adapter []
+  (hikari/make-hikari-adapter (start-postgres-container)))
+
+(defn stop-postgres-container []
+  (.stop container))
+
+(defn reset-table [adapter]
+  (let [drop-table-sql "DROP TABLE IF EXISTS test_table;"
+        create-table-sql "CREATE TABLE test_table (id SERIAL PRIMARY KEY, name TEXT);"]
+    (adapter/execute! adapter drop-table-sql [])
+    (adapter/execute! adapter create-table-sql [])))
+
+(use-fixtures :once
+  (fn [tests]
+    (start-postgres-container)
+    (tests)
+    (stop-postgres-container)))
+
+(use-fixtures :each
+  (fn [tests]
+    (let [adapter (setup-adapter)]
+      ;; Reset the table before each test
+      (reset-table adapter)
+      (tests))))
+
+(deftest postgres-adapter-basic-test
+  (let [adapter (setup-adapter)
         insert-sql "INSERT INTO test_table (name) VALUES (?);"
         select-sql "SELECT * FROM test_table;"]
 
-    ;; Create table
-    (adapter/execute! adapter create-table-sql [])
-
-    ;; Insert rows
     (adapter/execute! adapter insert-sql ["Alice"])
     (adapter/execute! adapter insert-sql ["Bob"])
 
-    ;; Query and verify
     (let [results (adapter/query adapter select-sql [])]
       (is (= 2 (count results)))
-      (is (= "[\"Alice\"]" (:name (first results))))
-      (is (= "[\"Bob\"]" (:name (second results)))))
+      (is (= "Alice" (:name (first results))))
+      (is (= "Bob" (:name (second results)))))
     (adapter/close adapter)))
 
-(deftest sqlite-adapter-transaction-test
-  (let [adapter (hikari/make-hikari-adapter sqlite-config)
-        create-table-sql "CREATE TABLE test_table (id INTEGER PRIMARY KEY, name TEXT);"
+(deftest postgres-adapter-transaction-test
+  (let [adapter (setup-adapter)
         insert-sql "INSERT INTO test_table (name) VALUES (?);"
         select-sql "SELECT * FROM test_table;"]
 
-    ;; Create table
-    (adapter/execute! adapter create-table-sql [])
-
-    ;; Run a transaction
     (adapter/with-transaction adapter
       (fn [tx]
         (adapter/execute! tx insert-sql ["Alice"])
         (adapter/execute! tx insert-sql ["Bob"])))
 
-    ;; Verify data
     (let [results (adapter/query adapter select-sql [])]
       (is (= 2 (count results)))
-      (is (= "[\"Alice\"]" (:name (first results))))
-      (is (= "[\"Bob\"]" (:name (second results)))))
+      (is (= "Alice" (:name (first results))))
+      (is (= "Bob" (:name (second results)))))
     (adapter/close adapter)))
 
-(deftest sqlite-adapter-transaction-rollback-test
-  (let [adapter (hikari/make-hikari-adapter sqlite-config)
-        create-table-sql "CREATE TABLE test_table (id INTEGER PRIMARY KEY, name TEXT);"
+(deftest postgres-adapter-transaction-rollback-test
+  (let [adapter (setup-adapter)
         insert-sql "INSERT INTO test_table (name) VALUES (?);"
         select-sql "SELECT * FROM test_table;"]
 
-    ;; Create table
-    (adapter/execute! adapter create-table-sql [])
-
-    ;; Attempt a transaction with a simulated failure
     (try
       (adapter/with-transaction adapter
         (fn [tx]
@@ -65,7 +81,6 @@
       (catch Exception e
         (is (= "Simulated failure" (.getMessage e)))))
 
-    ;; Verify that no data was committed
     (let [results (adapter/query adapter select-sql [])]
       (is (= 0 (count results))))
     (adapter/close adapter)))
