@@ -48,7 +48,7 @@
                         {:type :transaction-error}
                         e)))))
 
-  ;; Close the connection pool)
+  ;; Close the connection pool
   (close [this]
     (try
       (.close (:datasource this))
@@ -57,12 +57,20 @@
                         {:type ::close-error}
                         e))))))
 
-;; Factory function to create the adapter
+(defn ensure-pgmq-extension [adapter]
+  (let [check-extension-sql "SELECT extname FROM pg_extension WHERE extname = 'pgmq';"
+        extension-check (adapter/query adapter check-extension-sql [])]
+    (if (empty? extension-check)
+      (throw (ex-info "PGMQ extension is not installed." {:cause :extension-missing}))
+      (println "PGMQ extension is installed"))))
+
 (defn make-hikari-adapter [config]
   (let [datasource (doto (HikariDataSource.)
                      (.setJdbcUrl (:jdbc-url config))
                      (.setUsername (:username config))
                      (.setPassword (:password config))
                      (.setMaximumPoolSize (or (:maximum-pool-size config) 4))
-                     (.setMinimumIdle (or (:minimum-idle config) 2)))]
-    (->HikariAdapter datasource)))
+                     (.setMinimumIdle (or (:minimum-idle config) 2)))
+        adapter (->HikariAdapter datasource)]
+    (ensure-pgmq-extension adapter)
+    adapter))
