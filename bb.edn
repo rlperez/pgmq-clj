@@ -16,12 +16,15 @@
                     :task (clojure {:dir "."} "-M:dev:cider")}
 
          test      {:doc  "runs tests"
-                    :task (clojure {:dir "."} "-M:test")}
+                    :task (fn [{:keys [args]}]
+                            (let [profile (if (seq args) (first args) "test")
+                                  extra-opts (rest args)]
+                              (shell {:dir "."} (str "bin/kaocha --profile " profile))))}
 
          uberjar   {:doc  "builds the uberjar with shadow-cljs output"
                     :task (do
                             (clojure {:dir "."} "-T:build all"))
-                    :override-builtin true} ;; Build the uberjar
+                    :override-builtin true}
 
          upgrade   {:doc "updates dependencies for project"
                     :task (do

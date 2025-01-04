@@ -1,0 +1,50 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;  {:tests [{:id :unit-tests                                                                                        ;;
+;;            :test-paths ["test"]}] ;; Use "test" as the path if you don't separate unit tests into subdirectories. ;;
+;;                                                                                                                   ;;
+;;   :reporter #profile {:ci kaocha.report/documentation                                                             ;;
+;;                       :default kaocha.report/dots                                                                 ;;
+;;                       :debug kaocha.report/pretty}                                                                ;;
+;;                                                                                                                   ;;
+;;   :plugins [:kaocha.plugin/randomize]                                                                             ;;
+;;                                                                                                                   ;;
+;;   :randomize {:seed 26331}                                                                                        ;;
+;;                                                                                                                   ;;
+;; ;;  :profiles {:coverage {:reporter kaocha.report/documentation}                                                  ;;
+;; ;;             :test {:reporter kaocha.report.progress/report}                                                    ;;
+;; ;;             :watch {:reporter kaocha.report/pretty                                                             ;;
+;; ;;                     :test-options {:fail-fast? true                                                            ;;
+;; ;;                                    :parallel? false                                                            ;;
+;; ;;                                    :debug? true}}}                                                             ;;
+;;   :profiles {:coverage {:reporter kaocha.report/documentation}                                                    ;;
+;;              :test {:reporter kaocha.report.progress}                                                             ;;
+;;              :watch {:reporter kaocha.report/pretty}}                                                             ;;
+;;                                                                                                                   ;;
+;;   :test-options {:fail-fast? false                                                                                ;;
+;;                  :parallel? true                                                                                  ;;
+;;                  :capture-output? true}                                                                           ;;
+;;                                                                                                                   ;;
+;;   :watch {:include [".clj" ".cljs" ".cljc"]                                                                       ;;
+;;           :exclude [".clj-kondo" ".cpcache" ".lsp" "bin" "target"]}}                                              ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+#kaocha/v1
+ {:tests [{;; Every suite must have an :id
+           :id :unit
+           :source-paths ["src"]
+           :test-paths ["test"]
+           :ns-patterns ["-test$"]}]
+
+  :plugins [:kaocha.plugin/print-invocations
+            :kaocha.plugin/profiling]
+  :color?          true
+  :watch?   #profile {:coverage false
+                      :test false
+                      :watch true}
+  :reporter #profile {:coverage kaocha.report/documentation
+                      :test kaocha.report.progress/progress
+                      :watch kaocha.report/dots*}
+  :parallel #profile {:coverage true
+                      :test true
+                      :watch false}
+  :capture-output? true
+  :kaocha.plugin.profiling/count 3}
