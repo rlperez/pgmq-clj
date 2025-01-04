@@ -7,40 +7,48 @@
 (defrecord HikariAdapter [datasource]
   adapter/Adapter
 
+  ;; Execute a query (e.g., UPDATE, INSERT, DELETE) with optional parameters
   (execute! [this sql params]
     (try
-      (jdbc/execute! (:datasource this)
-                     (cond-> sql
-                       (seq params) (jdbc/with-parameters params)))
+      (jdbc/execute!
+       (:datasource this)
+       (if (seq params)
+         [sql params]
+         [sql]))
       (catch Exception e
-        (throw (ex-info "Failed to execute SQL statement"
-                        {:type ::execute-error
+        (throw (ex-info "Error executing statement"
+                        {:type :execute-error
                          :sql sql
                          :params params}
                         e)))))
 
+  ;; Execute a SELECT query with optional parameters
   (query [this sql params]
     (try
-      (jdbc/execute! (:datasource this)
-                     (cond-> sql
-                       (seq params) (jdbc/with-parameters params))
-                     {:builder-fn rs/as-unqualified-lower-maps})
+      (jdbc/execute!
+       (:datasource this)
+       (if (seq params)
+         [sql params]
+         [sql])
+       {:builder-fn rs/as-unqualified-lower-maps})
       (catch Exception e
-        (throw (ex-info "Failed to execute query"
-                        {:type ::query-error
+        (throw (ex-info "Error executing query"
+                        {:type :query-error
                          :sql sql
                          :params params}
                         e)))))
 
+  ;; Perform a transactional operation
   (with-transaction [this f]
     (try
       (jdbc/with-transaction [tx (:datasource this)]
         (f (assoc this :datasource tx)))
       (catch Exception e
-        (throw (ex-info "Failed to execute within a transaction"
-                        {:type ::transaction-error}
+        (throw (ex-info "Error in transaction"
+                        {:type :transaction-error}
                         e)))))
 
+  ;; Close the connection pool)
   (close [this]
     (try
       (.close (:datasource this))
@@ -49,17 +57,12 @@
                         {:type ::close-error}
                         e))))))
 
+;; Factory function to create the adapter
 (defn make-hikari-adapter [config]
-  (try
-    (let [datasource (doto (HikariDataSource.)
-                       (.setJdbcUrl (:jdbc-url config))
-                       (.setUsername (:username config))
-                       (.setPassword (:password config))
-                       (.setMaximumPoolSize (or (:maximum-pool-size config) 4))
-                       (.setMinimumIdle (or (:minimum-idle config) 2)))]
-      (->HikariAdapter datasource))
-    (catch Exception e
-      (throw (ex-info "Failed to create HikariAdapter"
-                      {:type ::adapter-creation-error
-                       :config config}
-                      e)))))
+  (let [datasource (doto (HikariDataSource.)
+                     (.setJdbcUrl (:jdbc-url config))
+                     (.setUsername (:username config))
+                     (.setPassword (:password config))
+                     (.setMaximumPoolSize (or (:maximum-pool-size config) 4))
+                     (.setMinimumIdle (or (:minimum-idle config) 2)))]
+    (->HikariAdapter datasource)))
