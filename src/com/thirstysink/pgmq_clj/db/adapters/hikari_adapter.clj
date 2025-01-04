@@ -58,6 +58,13 @@
                         e))))))
 
 (defn ensure-pgmq-extension [adapter]
+  (let [check-extension-sql "SELECT extname FROM pg_extension WHERE extname = 'pgmq';"]
+    (let [extension-check (adapter/query adapter check-extension-sql [])]
+      (if (empty? extension-check)
+        (throw (ex-info "PGMQ extension is not installed." {:cause :extension-missing}))
+        (println "PGMQ extension is installed")))))
+
+(defn ensure-pgmq-extension [adapter]
   (let [check-extension-sql "SELECT extname FROM pg_extension WHERE extname = 'pgmq';"
         extension-check (adapter/query adapter check-extension-sql [])]
     (if (empty? extension-check)
