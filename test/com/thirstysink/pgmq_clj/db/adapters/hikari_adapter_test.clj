@@ -1,11 +1,9 @@
 (ns com.thirstysink.pgmq-clj.db.adapters.hikari-adapter-test
   (:require [clojure.test :refer [deftest is use-fixtures]]
             [com.thirstysink.pgmq-clj.db.adapter :as adapter]
-            [com.thirstysink.util.db :as db])
-  (:import [org.testcontainers.containers PostgreSQLContainer]))
+            [com.thirstysink.util.db :as db]))
 
-;; Create a PostgreSQL container for testing
-(defonce container (PostgreSQLContainer. "postgres:17-alpine"))
+(def container (db/pgmq-container))
 
 (defn reset-table [adapter]
   (let [drop-table-sql "DROP TABLE IF EXISTS test_table;"
@@ -31,8 +29,8 @@
         insert-sql "INSERT INTO test_table (name) VALUES (?);"
         select-sql "SELECT * FROM test_table;"]
 
-    (adapter/execute! adapter insert-sql ["Alice"])
-    (adapter/execute! adapter insert-sql ["Bob"])
+    (adapter/execute! adapter insert-sql "Alice")
+    (adapter/execute! adapter insert-sql "Bob")
 
     (let [results (adapter/query adapter select-sql [])]
       (is (= 2 (count results)))
@@ -47,8 +45,8 @@
 
     (adapter/with-transaction adapter
       (fn [tx]
-        (adapter/execute! tx insert-sql ["Alice"])
-        (adapter/execute! tx insert-sql ["Bob"])))
+        (adapter/execute! tx insert-sql "Alice")
+        (adapter/execute! tx insert-sql "Bob")))
 
     (let [results (adapter/query adapter select-sql [])]
       (is (= 2 (count results)))
@@ -64,7 +62,7 @@
     (try
       (adapter/with-transaction adapter
         (fn [tx]
-          (adapter/execute! tx insert-sql ["Alice"])
+          (adapter/execute! tx insert-sql "Alice")
           (throw (Exception. "Simulated failure"))))
       (catch Exception e
         (is (= "Simulated failure" (.getMessage e)))))
