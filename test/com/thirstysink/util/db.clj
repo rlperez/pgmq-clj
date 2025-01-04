@@ -1,5 +1,14 @@
 (ns com.thirstysink.util.db
-  (:require [com.thirstysink.pgmq-clj.db.adapters.hikari-adapter :as hikari]))
+  (:require [com.thirstysink.pgmq-clj.db.adapters.hikari-adapter :as hikari])
+  (:import [org.testcontainers.utility DockerImageName]
+           [org.testcontainers.containers PostgreSQLContainer]))
+
+(defn pgmq-container []
+  (doto
+   (PostgreSQLContainer.
+    (-> (DockerImageName/parse "tembo.docker.scarf.sh/tembo/pg17-pgmq:latest")
+        (.asCompatibleSubstituteFor "postgres")))
+    (.withInitScript "sql/init.sql")))
 
 (defn start-postgres-container [container]
   (.start container)
