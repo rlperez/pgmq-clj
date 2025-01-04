@@ -51,8 +51,8 @@
 
     (adapter/with-transaction adapter
       (fn [tx]
-        (adapter/execute! tx insert-sql ["Alice"])
-        (adapter/execute! tx insert-sql ["Bob"])))
+        (adapter/execute! tx insert-sql "Alice")
+        (adapter/execute! tx insert-sql "Bob")))
 
     (let [results (adapter/query adapter select-sql [])]
       (is (= 2 (count results)))
@@ -70,7 +70,7 @@
     (try
       (adapter/with-transaction adapter
         (fn [tx]
-          (adapter/execute! tx insert-sql ["Alice"])
+          (adapter/execute! tx insert-sql "Alice")
           (throw (Exception. "Simulated failure"))))
       (catch Exception e
         (is (= "Error in transaction" (.getMessage e)))
