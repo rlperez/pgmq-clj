@@ -12,8 +12,8 @@
                       :test false
                       :watch true}
   :reporter #profile {:coverage kaocha.report/documentation
-                      :test kaocha.report.progress/progress
-                      :watch kaocha.report/dots}
+                      :test [kaocha.report.progress/progress kaocha.report/fail-summary]
+                      :watch [kaocha.report/dots kaocha.report/fail-summary]}
   :parallel #profile {:coverage true
                       :test true
                       :watch false}
