@@ -17,4 +17,4 @@ jobs:
       - uses: jdx/mise-action@v2
       - name: Run tests
         run: |
-          bb test
+          bb test coverage
