@@ -16,10 +16,14 @@
                     :task (clojure {:dir "."} "-M:dev:cider")}
 
          test      {:doc  "runs tests"
-                    :task (fn [{:keys [args]}]
-                            (let [profile (if (seq args) (first args) "test")
-                                  extra-opts (rest args)]
-                              (shell {:dir "."} (str "bin/kaocha --profile " profile))))}
+                    :task (let [args (:args (babashka.tasks/current-task))
+                                profile (if (seq args) (first args) "test")
+                                extra-opts (rest args)
+                                cmd (str "bin/kaocha --profile " profile
+                                         (when (seq extra-opts)
+                                           (str " " (clojure.string/join " " extra-opts))))]
+                            (println "Executing command:" cmd)
+                            (shell {:dir "."} cmd))}
 
          uberjar   {:doc  "builds the uberjar with shadow-cljs output"
                     :task (do
