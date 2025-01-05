@@ -13,6 +13,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install tools
-        run: curl https://mise.jdx.dev/mise-latest-linux-x64 > /bin/mise && chmod +x /bin/mise && eval "$(mise activate bash)" && mise install
+        run: curl https://mise.jdx.dev/mise-latest-linux-x64 > ~/.local/bin/mise && chmod +x ~/.local/bin/mise && eval "$(mise activate bash)" && mise install
       - name: Run tests
         run: bb test
