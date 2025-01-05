@@ -15,15 +15,15 @@
          cider     {:doc  "starts the cider"
                     :task (clojure {:dir "."} "-M:dev:cider")}
 
-         test      {:doc  "runs tests"
-                    :task (let [args (:args (babashka.tasks/current-task))
-                                profile (if (seq args) (first args) "test")
-                                extra-opts (rest args)
-                                cmd (str "bin/kaocha --profile " profile
-                                         (when (seq extra-opts)
-                                           (str " " (clojure.string/join " " extra-opts))))]
-                            (println "Executing command:" cmd)
-                            (shell {:dir "."} cmd))}
+         test {:doc "runs tests"
+               :task (let [args *command-line-args*   ; Get args from the current task context
+                           profile (if (empty? args) "test" (first args)) ; Use the first argument or default to "test"
+                           extra-opts (rest args) ; Everything after the profile is considered extra options
+                           cmd (str "bin/kaocha --profile " profile
+                                    (when (seq extra-opts)
+                                      (str " " (clojure.string/join " " extra-opts))))]
+                       (println "Executing command:" cmd)
+                       (shell {:dir "."} cmd))}
 
          uberjar   {:doc  "builds the uberjar with shadow-cljs output"
                     :task (do
