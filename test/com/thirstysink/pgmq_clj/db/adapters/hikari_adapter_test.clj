@@ -11,10 +11,7 @@
         insert-sql "INSERT INTO test_table (name) VALUES (?);"
         select-sql "SELECT * FROM test_table;"]
 
-    ;; Create table
     (adapter/execute! adapter create-table-sql [])
-
-    ;; Insert rows
     (adapter/execute! adapter insert-sql ["Alice"])
     (adapter/execute! adapter insert-sql ["Bob"])
 
@@ -31,16 +28,12 @@
         insert-sql "INSERT INTO test_table (name) VALUES (?);"
         select-sql "SELECT * FROM test_table;"]
 
-    ;; Create table
     (adapter/execute! adapter create-table-sql [])
-
-    ;; Run a transaction
     (adapter/with-transaction adapter
       (fn [tx]
         (adapter/execute! tx insert-sql ["Alice"])
         (adapter/execute! tx insert-sql ["Bob"])))
 
-    ;; Verify data
     (let [results (adapter/query adapter select-sql [])]
       (is (= 2 (count results)))
       (is (= "[\"Alice\"]" (:name (first results))))
@@ -53,19 +46,17 @@
         insert-sql "INSERT INTO test_table (name) VALUES (?);"
         select-sql "SELECT * FROM test_table;"]
 
-    ;; Create table
     (adapter/execute! adapter create-table-sql [])
 
-    ;; Attempt a transaction with a simulated failure
     (try
       (adapter/with-transaction adapter
         (fn [tx]
           (adapter/execute! tx insert-sql ["Alice"])
           (throw (Exception. "Simulated failure"))))
       (catch Exception e
-        (is (= "Simulated failure" (.getMessage e)))))
+        (is (= "Error in transaction" (.getMessage e)))
+        (is (= "Simulated failure" (.getMessage (.getCause e))))))
 
-    ;; Verify that no data was committed
     (let [results (adapter/query adapter select-sql [])]
       (is (= 0 (count results))))
     (adapter/close adapter)))
