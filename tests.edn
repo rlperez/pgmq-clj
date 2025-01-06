@@ -1,0 +1,51 @@
+#kaocha/v1
+ {:tests [{:id :unit
+           :source-paths ["src"]
+           :test-paths   ["test"]
+           :ns-patterns  ["-test$"]}]
+
+  :plugins [:kaocha.plugin/print-invocations
+            :kaocha.plugin/cloverage
+            :kaocha.plugin/profiling]
+  :cloverage/opts
+  {:ns-exclude-regex [],
+   :text? false,
+   :lcov? false,
+   :high-watermark 80,
+   :fail-threshold #profile {:test 90
+                             :coverage 90
+                             :watch 0},
+   :output "target/coverage",
+   :low-watermark 50,
+   :ns-regex [],
+   :summary? #profile {:test false
+                       :coverage true
+                       :watch false},
+   :coveralls? false,
+   :emma-xml? false,
+   :html? #profile {:test true
+                    :coverage false
+                    :watch false},
+   :nop? false,
+   :codecov? false}
+  :randomize         {:seed 26331}
+  :color?             true
+  :watch?   #profile {:coverage false
+                      :test false
+                      :watch true}
+  :reporter #profile {:coverage kaocha.report/documentation
+                      :test [kaocha.report.progress/progress kaocha.report/fail-summary]
+                      :watch [kaocha.report/dots kaocha.report/fail-summary]}
+  :parallel #profile {:coverage true
+                      :test true
+                      :watch false}
+  :fail-fast #profile {:coverage false
+                       :test false
+                       :watch true}
+  :kaocha.plugin.profiling/profiling? #profile {:coverage true
+                                                :test false
+                                                :watch false}
+  :kaocha.plugin.profiling/count #profile {:coverage 5
+                                           :test 0
+                                           :watch 0}
+  :capture-output?    false}

@@ -7,26 +7,57 @@
 (defrecord HikariAdapter [datasource]
   adapter/Adapter
 
+  ;; Execute a query (e.g., UPDATE, INSERT, DELETE) with optional parameters
   (execute! [this sql params]
-    (jdbc/execute! (:datasource this)
-                   (if (seq params)
-                     [sql params]
-                     [sql])))
+    (try
+      (jdbc/execute!
+       (:datasource this)
+       (if (seq params)
+         [sql params]
+         [sql]))
+      (catch Exception e
+        (throw (ex-info "Error executing statement"
+                        {:type :execute-error
+                         :sql sql
+                         :params params}
+                        e)))))
 
+  ;; Execute a SELECT query with optional parameters
   (query [this sql params]
-    (jdbc/execute! (:datasource this)
-                   (if (seq params)
-                     [sql params]
-                     [sql])
-                   {:builder-fn rs/as-unqualified-lower-maps}))
+    (try
+      (jdbc/execute!
+       (:datasource this)
+       (if (seq params)
+         [sql params]
+         [sql])
+       {:builder-fn rs/as-unqualified-lower-maps})
+      (catch Exception e
+        (throw (ex-info "Error executing query"
+                        {:type :query-error
+                         :sql sql
+                         :params params}
+                        e)))))
 
+  ;; Perform a transactional operation
   (with-transaction [this f]
-    (jdbc/with-transaction [tx (:datasource this)]
-      (f (assoc this :datasource tx))))
+    (try
+      (jdbc/with-transaction [tx (:datasource this)]
+        (f (assoc this :datasource tx)))
+      (catch Exception e
+        (throw (ex-info "Error in transaction"
+                        {:type :transaction-error}
+                        e)))))
 
+  ;; Close the connection pool)
   (close [this]
-    (.close (:datasource this))))
+    (try
+      (.close (:datasource this))
+      (catch Exception e
+        (throw (ex-info "Failed to close the datasource"
+                        {:type ::close-error}
+                        e))))))
 
+;; Factory function to create the adapter
 (defn make-hikari-adapter [config]
   (let [datasource (doto (HikariDataSource.)
                      (.setJdbcUrl (:jdbc-url config))

@@ -2,18 +2,17 @@ name: Clojure CI
 
 on:
   push:
-    branches: [ "master" ]
+    branches: ["master"]
   pull_request:
-    branches: [ "master" ]
+    branches: ["master"]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Install Babashka
-      run: bash < <(curl -s https://raw.githubusercontent.com/babashka/babashka/master/install)
-    - name: Run tests
-      run: bb test
+      - uses: actions/checkout@v4
+      - uses: jdx/mise-action@v2
+      - name: Run tests
+        run: |
+          bb test coverage
