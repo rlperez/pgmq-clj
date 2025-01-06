@@ -1,12 +1,14 @@
 (ns com.thirstysink.pgmq-clj.db.adapters.hikari-adapter-test
-  (:require [clojure.test :refer [deftest is]]
+  (:require [clojure.test :refer [deftest is testing]]
+            [next.jdbc :as jdbc]
             [com.thirstysink.pgmq-clj.db.adapter :as adapter]
-            [com.thirstysink.pgmq-clj.db.adapters.hikari-adapter :as hikari]))
+            [com.thirstysink.pgmq-clj.db.adapters.hikari-adapter :refer :all])
+  (:import [com.zaxxer.hikari HikariDataSource]))
 
 (def sqlite-config {:jdbc-url "jdbc:sqlite::memory:"})
 
 (deftest sqlite-adapter-basic-test
-  (let [adapter (hikari/make-hikari-adapter sqlite-config)
+  (let [adapter (make-hikari-adapter sqlite-config)
         create-table-sql "CREATE TABLE test_table (id INTEGER PRIMARY KEY, name TEXT);"
         insert-sql "INSERT INTO test_table (name) VALUES (?);"
         select-sql "SELECT * FROM test_table;"]
@@ -23,7 +25,7 @@
     (adapter/close adapter)))
 
 (deftest sqlite-adapter-transaction-test
-  (let [adapter (hikari/make-hikari-adapter sqlite-config)
+  (let [adapter (make-hikari-adapter sqlite-config)
         create-table-sql "CREATE TABLE test_table (id INTEGER PRIMARY KEY, name TEXT);"
         insert-sql "INSERT INTO test_table (name) VALUES (?);"
         select-sql "SELECT * FROM test_table;"]
@@ -41,7 +43,7 @@
     (adapter/close adapter)))
 
 (deftest sqlite-adapter-transaction-rollback-test
-  (let [adapter (hikari/make-hikari-adapter sqlite-config)
+  (let [adapter (make-hikari-adapter sqlite-config)
         create-table-sql "CREATE TABLE test_table (id INTEGER PRIMARY KEY, name TEXT);"
         insert-sql "INSERT INTO test_table (name) VALUES (?);"
         select-sql "SELECT * FROM test_table;"]
@@ -60,3 +62,45 @@
     (let [results (adapter/query adapter select-sql [])]
       (is (= 0 (count results))))
     (adapter/close adapter)))
+
+(deftest execute!-throws-exception
+  (testing "HikariAdapter.execute! throws exception"
+    (let [mock-datasource (atom nil)
+          adapter (->HikariAdapter mock-datasource)]
+      (with-redefs [jdbc/execute! (fn [_ _] (throw (Exception. "Mock execute! failure")))]
+        (is (thrown-with-msg?
+             clojure.lang.ExceptionInfo
+             #"Error executing statement"
+             (adapter/execute! adapter "UPDATE test SET value = ?" [42])))))))
+
+(deftest query-throws-exception
+  (testing "HikariAdapter.query throws exception"
+    (let [mock-datasource (atom nil)
+          adapter (->HikariAdapter mock-datasource)]
+      (with-redefs [jdbc/execute! (fn [_ _ _] (throw (Exception. "Mock query failure")))]
+        (is (thrown-with-msg?
+             clojure.lang.ExceptionInfo
+             #"Error executing query"
+             (adapter/query adapter "SELECT * FROM test WHERE id = ?" [1])))))))
+
+(deftest with-transaction-throws-exception
+  (testing "HikariAdapter.with-transaction throws exception"
+    (let [mock-datasource (atom nil)
+          adapter (->HikariAdapter mock-datasource)]
+      (with-redefs [jdbc/with-transaction (fn [_ _] (throw (Exception. "Mock transaction failure")))]
+        (is (thrown-with-msg?
+             clojure.lang.ExceptionInfo
+             #"Error in transaction"
+             (adapter/with-transaction adapter (fn [tx] (println "Transaction logic")))))))))
+
+(deftest close-throws-exception
+  (testing "HikariAdapter.close throws exception"
+    ;; Mock the HikariDataSource to throw an exception on `.close`
+    (let [mock-datasource (proxy [HikariDataSource] []
+                            (close []
+                              (throw (Exception. "Mock close failure"))))
+          adapter (->HikariAdapter mock-datasource)]
+      (is (thrown-with-msg?
+           clojure.lang.ExceptionInfo
+           #"Failed to close the datasource"
+           (adapter/close adapter))))))
