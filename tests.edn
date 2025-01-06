@@ -5,7 +5,29 @@
            :ns-patterns  ["-test$"]}]
 
   :plugins [:kaocha.plugin/print-invocations
+            :kaocha.plugin/cloverage
             :kaocha.plugin/profiling]
+  :cloverage/opts
+  {:ns-exclude-regex [],
+   :text? false,
+   :lcov? false,
+   :high-watermark 80,
+   :fail-threshold #profile {:test 90
+                             :coverage 90
+                             :watch 0},
+   :output "target/coverage",
+   :low-watermark 50,
+   :ns-regex [],
+   :summary? #profile {:test false
+                       :coverage true
+                       :watch false},
+   :coveralls? false,
+   :emma-xml? false,
+   :html? #profile {:test true
+                    :coverage false
+                    :watch false},
+   :nop? false,
+   :codecov? false}
   :randomize         {:seed 26331}
   :color?             true
   :watch?   #profile {:coverage false
