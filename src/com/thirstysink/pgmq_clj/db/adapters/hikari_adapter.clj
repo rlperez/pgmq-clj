@@ -13,7 +13,7 @@
       (jdbc/execute!
        (:datasource this)
        (if (seq params)
-         [sql params]
+         (into [sql] params)
          [sql]))
       (catch Exception e
         (throw (ex-info "Error executing statement"
@@ -28,7 +28,7 @@
       (jdbc/execute!
        (:datasource this)
        (if (seq params)
-         [sql params]
+         (into [sql] params)
          [sql])
        {:builder-fn rs/as-unqualified-lower-maps})
       (catch Exception e
@@ -58,19 +58,12 @@
                         e))))))
 
 (defn ensure-pgmq-extension [adapter]
-  (let [check-extension-sql "SELECT extname FROM pg_extension WHERE extname = 'pgmq';"]
-    (let [extension-check (adapter/query adapter check-extension-sql [])]
-      (if (empty? extension-check)
-        (throw (ex-info "PGMQ extension is not installed." {:cause :extension-missing}))
-        (println "PGMQ extension is installed")))))
-
-(defn ensure-pgmq-extension [adapter]
   (let [check-extension-sql "SELECT extname FROM pg_extension WHERE extname = 'pgmq';"
         extension-check (adapter/query adapter check-extension-sql [])]
     (if (empty? extension-check)
-      (throw (ex-info "PGMQ extension is not installed." {:cause :extension-missing}))
-      (println "PGMQ extension is installed"))))
+      (throw (ex-info "PGMQ extension is not installed." {:cause :extension-missing})))))
 
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn make-hikari-adapter [config]
   (let [datasource (doto (HikariDataSource.)
                      (.setJdbcUrl (:jdbc-url config))
