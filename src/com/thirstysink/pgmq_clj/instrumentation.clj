@@ -8,14 +8,8 @@
   (doseq [[name _] (ns-publics ns)]
     (action (symbol (str ns) (str name)))))
 
-(defn enable-instrumentation
-  ([]
-   (enable-instrumentation *ns*))
-  ([ns]
-   (instrument-namespace ns stest/instrument)))
+(defn enable-instrumentation [ns]
+  (instrument-namespace ns stest/instrument))
 
-(defn disable-instrumentation
-  ([]
-   (disable-instrumentation *ns*))
-  ([ns]
-   (instrument-namespace ns stest/unstrument)))
+(defn disable-instrumentation [ns]
+  (instrument-namespace ns stest/unstrument))

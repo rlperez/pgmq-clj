@@ -35,5 +35,5 @@
 (defn archive-message [adapter queue-name msg-id] nil)
 
 (if inst/instrumentation-enabled?
-  (inst/enable-instrumentation)
-  (inst/disable-instrumentation))
+  (inst/enable-instrumentation `com.thirstysink.pgmq-clj.core)
+  (inst/disable-instrumentation `com.thirstysink.pgmq-clj.core))
