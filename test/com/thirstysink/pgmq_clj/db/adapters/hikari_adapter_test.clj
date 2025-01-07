@@ -62,7 +62,7 @@
         (is (= 0 (count results)))))
     (adapter/close adapter)))
 
-(deftest execute!-throws-exception
+(deftest throws-handling-test
   (testing "HikariAdapter.execute! throws exception"
     (let [mock-datasource (atom nil)
           adapter (->HikariAdapter mock-datasource)]
@@ -70,9 +70,7 @@
         (is (thrown-with-msg?
              clojure.lang.ExceptionInfo
              #"Error executing statement"
-             (adapter/execute! adapter "UPDATE test SET value = ?" [42])))))))
-
-(deftest query-throws-exception
+             (adapter/execute! adapter "UPDATE test SET value = ?" [42]))))))
   (testing "HikariAdapter.query throws exception"
     (let [mock-datasource (atom nil)
           adapter (->HikariAdapter mock-datasource)]
@@ -80,9 +78,7 @@
         (is (thrown-with-msg?
              clojure.lang.ExceptionInfo
              #"Error executing query"
-             (adapter/query adapter "SELECT * FROM test WHERE id = ?" [1])))))))
-
-(deftest with-transaction-throws-exception
+             (adapter/query adapter "SELECT * FROM test WHERE id = ?" [1]))))))
   (testing "HikariAdapter.with-transaction throws exception"
     (let [mock-datasource (atom nil)
           adapter (->HikariAdapter mock-datasource)]
@@ -90,9 +86,7 @@
         (is (thrown-with-msg?
              clojure.lang.ExceptionInfo
              #"Error in transaction"
-             (adapter/with-transaction adapter (fn [_tx] (println "Transaction logic")))))))))
-
-(deftest close-throws-exception
+             (adapter/with-transaction adapter (fn [_tx] (println "Transaction logic"))))))))
   (testing "HikariAdapter.close throws exception"
     ;; Mock the HikariDataSource to throw an exception on `.close`
     (let [mock-datasource (proxy [HikariDataSource] []

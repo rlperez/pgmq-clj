@@ -2,6 +2,7 @@
   (:require [clojure.test :refer [deftest is use-fixtures testing]]
             [com.thirstysink.pgmq-clj.core :as core]
             [com.thirstysink.pgmq-clj.db.adapter :as adapter]
+            [com.thirstysink.pgmq-clj.instrumentation :as inst]
             [com.thirstysink.util.db :as db]
             [clojure.core :as c]))
 
@@ -9,9 +10,12 @@
 
 (use-fixtures :once
   (fn [tests]
-    (db/start-postgres-container container)
-    (tests)
-    (db/stop-postgres-container container)))
+    (try
+      (inst/enable-instrumentation `com.thirstysink.pgmq-clj.core)
+      (db/start-postgres-container container)
+      (tests)
+      (finally
+        (db/stop-postgres-container container)))))
 
 (deftest create-and-drop-queue-test
   (let [adapter (db/setup-adapter container)

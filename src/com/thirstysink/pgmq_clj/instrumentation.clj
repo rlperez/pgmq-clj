@@ -1,6 +1,5 @@
 (ns com.thirstysink.pgmq-clj.instrumentation
-  (:require [clojure.spec.test.alpha :as stest]
-            [clojure.string :as cs]))
+  (:require [clojure.spec.test.alpha :as stest]))
 
 (def ^:dynamic instrumentation-enabled? (boolean (System/getenv "PGMQCLJ_INSTRUMENTAION_ENABLED")))
 
@@ -11,7 +10,6 @@
 
 (defn enable-instrumentation
   ([]
-   (println (clojure.string/join "NAMESPACE " *ns*))
    (enable-instrumentation *ns*))
   ([ns]
    (instrument-namespace ns stest/instrument)))
