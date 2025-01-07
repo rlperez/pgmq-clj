@@ -2,7 +2,8 @@
   (:require [clojure.test :refer [deftest is use-fixtures testing]]
             [com.thirstysink.pgmq-clj.core :as core]
             [com.thirstysink.pgmq-clj.db.adapter :as adapter]
-            [com.thirstysink.util.db :as db]))
+            [com.thirstysink.util.db :as db]
+            [clojure.core :as c]))
 
 (defonce container (db/pgmq-container))
 
@@ -28,35 +29,59 @@
       (is (empty? result)))))
 
 (deftest create-queue-name-test
-  (testing "create-queue throws exception with an empty queue-name"
-    (is (thrown-with-msg?
-         clojure.lang.ExceptionInfo
-         #"Queue name must be a non-empty string"
-         (core/create-queue nil ""))))
-  (testing "create-queue throws exception with a nil queue-name"
-    (is (thrown-with-msg?
-         clojure.lang.ExceptionInfo
-         #"Queue name must be a non-empty string"
-         (core/create-queue nil nil))))
-  (testing "create-queue throws exception with a non string queue-name"
-    (is (thrown-with-msg?
-         clojure.lang.ExceptionInfo
-         #"Queue name must be a non-empty string"
-         (core/create-queue nil 1)))))
+  (let [adapter (db/setup-adapter container)
+        expected-msg #"Call to com.thirstysink.pgmq-clj.core/create-queue did not conform to spec."]
+    (testing "create-queue throws exception with an nil adapter"
+      (is (thrown-with-msg?
+           clojure.lang.ExceptionInfo
+           expected-msg
+           (core/create-queue nil "test-queue"))))
+    (testing "create-queue throws exception with an invalid adapter"
+      (is (thrown-with-msg?
+           clojure.lang.ExceptionInfo
+           expected-msg
+           (core/create-queue [] "test-queue"))))
+    (testing "create-queue throws exception with an empty queue-name"
+      (is (thrown-with-msg?
+           clojure.lang.ExceptionInfo
+           expected-msg
+           (core/create-queue adapter ""))))
+    (testing "create-queue throws exception with a nil queue-name"
+      (is (thrown-with-msg?
+           clojure.lang.ExceptionInfo
+           expected-msg
+           (core/create-queue adapter nil))))
+    (testing "create-queue throws exception with a non string queue-name"
+      (is (thrown-with-msg?
+           clojure.lang.ExceptionInfo
+           expected-msg
+           (core/create-queue adapter 1))))))
 
 (deftest drop-queue-name-test
-  (testing "drop-queue throws exception with an empty queue-name"
-    (is (thrown-with-msg?
-         clojure.lang.ExceptionInfo
-         #"Queue name must be a non-empty string"
-         (core/drop-queue nil ""))))
-  (testing "drop-queue throws exception with a nil queue-name"
-    (is (thrown-with-msg?
-         clojure.lang.ExceptionInfo
-         #"Queue name must be a non-empty string"
-         (core/drop-queue nil nil))))
-  (testing "drop-queue throws exception with a non string queue-name"
-    (is (thrown-with-msg?
-         clojure.lang.ExceptionInfo
-         #"Queue name must be a non-empty string"
-         (core/drop-queue nil 1)))))
+  (let [adapter (db/setup-adapter container)
+        expected-msg #"Call to com.thirstysink.pgmq-clj.core/drop-queue did not conform to spec."]
+    (testing "drop-queue throws exception with an nil adapter"
+      (is (thrown-with-msg?
+           clojure.lang.ExceptionInfo
+           expected-msg
+           (core/drop-queue nil "test-queue"))))
+    (testing "drop-queue throws exception with an invalid adapter"
+      (is (thrown-with-msg?
+           clojure.lang.ExceptionInfo
+           expected-msg
+           (core/drop-queue [] "test-queue"))))
+    (testing "drop-queue throws exception with an empty queue-name"
+      (is (thrown-with-msg?
+           clojure.lang.ExceptionInfo
+           expected-msg
+           (core/drop-queue adapter ""))))
+    (testing "drop-queue throws exception with a nil queue-name"
+      (is (thrown-with-msg?
+           clojure.lang.ExceptionInfo
+           expected-msg
+           (core/drop-queue adapter nil))))
+    (testing "drop-queue throws exception with a non string queue-name"
+      (is (thrown-with-msg?
+           clojure.lang.ExceptionInfo
+           expected-msg
+           (core/drop-queue adapter 1))))))
