@@ -8,7 +8,7 @@
 
 (defonce container (db/pgmq-container))
 
-(defn reset-table [adapter]
+(defn- reset-table [adapter]
   (let [drop-table-sql "DROP TABLE IF EXISTS test_table;"
         create-table-sql "CREATE TABLE test_table (id SERIAL PRIMARY KEY, name TEXT);"]
     (adapter/execute! adapter drop-table-sql [])
@@ -17,61 +17,49 @@
 (use-fixtures :once
   (fn [tests]
     (db/start-postgres-container container)
-    (tests)
-    (db/stop-postgres-container container)))
-
-(use-fixtures :each
-  (fn [tests]
-    (let [adapter (db/setup-adapter container)]
-      (reset-table adapter)
-      (tests))))
+    (try
+      (tests)
+      (finally
+        (db/stop-postgres-container container)))))
 
 (deftest postgres-adapter-basic-test
   (let [adapter (db/setup-adapter container)
         insert-sql "INSERT INTO test_table (name) VALUES (?);"
         select-sql "SELECT * FROM test_table;"]
+    (testing "execute! and query execute an insert and query."
+      (reset-table adapter)
+      (adapter/execute! adapter insert-sql ["Alice"])
+      (adapter/execute! adapter insert-sql ["Bob"])
 
-    (adapter/execute! adapter insert-sql ["Alice"])
-    (adapter/execute! adapter insert-sql ["Bob"])
+      (let [results (adapter/query adapter select-sql [])]
+        (is (= 2 (count results)))
+        (is (= "Alice" (:name (first results))))
+        (is (= "Bob" (:name (second results))))))
 
-    (let [results (adapter/query adapter select-sql [])]
-      (is (= 2 (count results)))
-      (is (= "Alice" (:name (first results))))
-      (is (= "Bob" (:name (second results)))))
-    (adapter/close adapter)))
-
-(deftest postgres-adapter-transaction-test
-  (let [adapter (db/setup-adapter container)
-        insert-sql "INSERT INTO test_table (name) VALUES (?);"
-        select-sql "SELECT * FROM test_table;"]
-
-    (adapter/with-transaction adapter
-      (fn [tx]
-        (adapter/execute! tx insert-sql ["Alice"])
-        (adapter/execute! tx insert-sql ["Bob"])))
-
-    (let [results (adapter/query adapter select-sql [])]
-      (is (= 2 (count results)))
-      (is (= "Alice" (:name (first results))))
-      (is (= "Bob" (:name (second results)))))
-    (adapter/close adapter)))
-
-(deftest postgres-adapter-transaction-rollback-test
-  (let [adapter (db/setup-adapter container)
-        insert-sql "INSERT INTO test_table (name) VALUES (?);"
-        select-sql "SELECT * FROM test_table;"]
-
-    (try
+    (testing "execute! and query execute an insert and query wrapped in transaction."
+      (reset-table adapter)
       (adapter/with-transaction adapter
         (fn [tx]
           (adapter/execute! tx insert-sql ["Alice"])
-          (throw (Exception. "Simulated failure"))))
-      (catch Exception e
-        (is (= "Error in transaction" (.getMessage e)))
-        (is (= "Simulated failure" (.getMessage (.getCause e))))))
+          (adapter/execute! tx insert-sql ["Bob"])))
 
-    (let [results (adapter/query adapter select-sql [])]
-      (is (= 0 (count results))))
+      (let [results (adapter/query adapter select-sql [])]
+        (is (= 2 (count results)))
+        (is (= "Alice" (:name (first results))))
+        (is (= "Bob" (:name (second results))))))
+    (testing "with-transaction wrapper performs a rollback when failed insert occurs."
+      (try
+        (reset-table adapter)
+        (adapter/with-transaction adapter
+          (fn [tx]
+            (adapter/execute! tx insert-sql ["Alice"])
+            (throw (Exception. "Simulated failure"))))
+        (catch Exception e
+          (is (= "Error in transaction" (.getMessage e)))
+          (is (= "Simulated failure" (.getMessage (.getCause e))))))
+
+      (let [results (adapter/query adapter select-sql [])]
+        (is (= 0 (count results)))))
     (adapter/close adapter)))
 
 (deftest execute!-throws-exception
