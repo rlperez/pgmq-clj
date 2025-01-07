@@ -1,23 +1,31 @@
 (ns com.thirstysink.pgmq-clj.core
-  (:require
-   [clojure.string :as str]
-   [com.thirstysink.pgmq-clj.db.adapter :as adapter]))
+  (:require [clojure.spec.alpha :as s]
+            [clojure.spec.test.alpha :as stest]
+            [com.thirstysink.pgmq-clj.db.adapter :as adapter]))
 
-(defn- validate-queue-name [queue-name]
-  (when (or (not (string? queue-name)) (str/blank? queue-name))
-    (throw (ex-info "Queue name must be a non-empty string" {:value queue-name}))))
+(s/def ::adapter #(satisfies? adapter/Adapter %))
 
-(defn- execute-queue-sql [adapter sql queue-name]
-  (validate-queue-name queue-name)
-  (adapter/execute! adapter sql [queue-name]))
+(s/def ::queue-name (s/and string? not-empty))
+
+(s/fdef create-queue
+  :args (s/cat :adapter ::adapter :queue-name ::queue-name)
+  :ret nil)
 
 (defn create-queue [adapter queue-name]
   (let [create-sql "SELECT pgmq.create(?)"]
-    (execute-queue-sql adapter create-sql queue-name)))
+    (adapter/execute! adapter create-sql [queue-name])))
+
+(stest/instrument `create-queue)
+
+(s/fdef drop-queue
+  :args (s/cat :adapter ::adapter :queue-name ::queue-name)
+  :ret boolean?)
 
 (defn drop-queue [adapter queue-name]
   (let [drop-sql "SELECT pgmq.drop_queue(?)"]
-    (execute-queue-sql adapter drop-sql queue-name)))
+    (adapter/execute! adapter drop-sql [queue-name])))
+
+(stest/instrument `drop-queue)
 
 (defn send-message [adapter queue-name payload] nil)
 
