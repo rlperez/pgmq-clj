@@ -2,12 +2,11 @@
   (:require [next.jdbc :as jdbc]
             [clojure.test :refer [deftest is testing use-fixtures]]
             [com.thirstysink.pgmq-clj.db.adapter :as adapter]
-            [com.thirstysink.pgmq-clj.db.adapters.hikari-adapter :refer :all]
+            [com.thirstysink.pgmq-clj.db.adapters.hikari-adapter :refer [->HikariAdapter]]
             [com.thirstysink.util.db :as db])
-  (:import [com.zaxxer.hikari HikariDataSource]
-           [org.testcontainers.containers PostgreSQLContainer]))
+  (:import [com.zaxxer.hikari HikariDataSource]))
 
-(defonce container (PostgreSQLContainer. "postgres:17-alpine"))
+(defonce container (db/pgmq-container))
 
 (defn reset-table [adapter]
   (let [drop-table-sql "DROP TABLE IF EXISTS test_table;"
@@ -24,7 +23,6 @@
 (use-fixtures :each
   (fn [tests]
     (let [adapter (db/setup-adapter container)]
-      ;; Reset the table before each test
       (reset-table adapter)
       (tests))))
 
@@ -33,7 +31,6 @@
         insert-sql "INSERT INTO test_table (name) VALUES (?);"
         select-sql "SELECT * FROM test_table;"]
 
-    (adapter/execute! adapter create-table-sql [])
     (adapter/execute! adapter insert-sql ["Alice"])
     (adapter/execute! adapter insert-sql ["Bob"])
 
@@ -47,12 +44,11 @@
   (let [adapter (db/setup-adapter container)
         insert-sql "INSERT INTO test_table (name) VALUES (?);"
         select-sql "SELECT * FROM test_table;"]
-    (adapter/execute! adapter create-table-sql [])
 
     (adapter/with-transaction adapter
       (fn [tx]
-        (adapter/execute! tx insert-sql "Alice")
-        (adapter/execute! tx insert-sql "Bob")))
+        (adapter/execute! tx insert-sql ["Alice"])
+        (adapter/execute! tx insert-sql ["Bob"])))
 
     (let [results (adapter/query adapter select-sql [])]
       (is (= 2 (count results)))
@@ -65,12 +61,10 @@
         insert-sql "INSERT INTO test_table (name) VALUES (?);"
         select-sql "SELECT * FROM test_table;"]
 
-    (adapter/execute! adapter create-table-sql [])
-
     (try
       (adapter/with-transaction adapter
         (fn [tx]
-          (adapter/execute! tx insert-sql "Alice")
+          (adapter/execute! tx insert-sql ["Alice"])
           (throw (Exception. "Simulated failure"))))
       (catch Exception e
         (is (= "Error in transaction" (.getMessage e)))
@@ -108,7 +102,7 @@
         (is (thrown-with-msg?
              clojure.lang.ExceptionInfo
              #"Error in transaction"
-             (adapter/with-transaction adapter (fn [tx] (println "Transaction logic")))))))))
+             (adapter/with-transaction adapter (fn [_tx] (println "Transaction logic")))))))))
 
 (deftest close-throws-exception
   (testing "HikariAdapter.close throws exception"
