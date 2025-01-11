@@ -2,17 +2,13 @@
   (:require [next.jdbc :as jdbc]
             [clojure.test :refer [deftest is testing use-fixtures]]
             [com.thirstysink.pgmq-clj.db.adapter :as adapter]
-            [com.thirstysink.pgmq-clj.db.adapters.hikari-adapter :refer [->HikariAdapter]]
+            [com.thirstysink.pgmq-clj.db.adapters.hikari-adapter :refer [->HikariAdapter ensure-pgmq-extension]]
             [com.thirstysink.util.db :as db])
   (:import [com.zaxxer.hikari HikariDataSource]))
 
 (defonce container (db/pgmq-container))
 
-(defn- reset-table [adapter]
-  (let [drop-table-sql "DROP TABLE IF EXISTS test_table;"
-        create-table-sql "CREATE TABLE test_table (id SERIAL PRIMARY KEY, name TEXT);"]
-    (adapter/execute! adapter drop-table-sql [])
-    (adapter/execute! adapter create-table-sql [])))
+(def test-table-name "test_table")
 
 (use-fixtures :once
   (fn [tests]
@@ -27,7 +23,7 @@
         insert-sql "INSERT INTO test_table (name) VALUES (?);"
         select-sql "SELECT * FROM test_table;"]
     (testing "execute! and query execute an insert and query."
-      (reset-table adapter)
+      (db/reset-table adapter test-table-name)
       (adapter/execute! adapter insert-sql ["Alice"])
       (adapter/execute! adapter insert-sql ["Bob"])
 
@@ -37,7 +33,7 @@
         (is (= "Bob" (:name (second results))))))
 
     (testing "execute! and query execute an insert and query wrapped in transaction."
-      (reset-table adapter)
+      (db/reset-table adapter test-table-name)
       (adapter/with-transaction adapter
         (fn [tx]
           (adapter/execute! tx insert-sql ["Alice"])
@@ -49,7 +45,7 @@
         (is (= "Bob" (:name (second results))))))
     (testing "with-transaction wrapper performs a rollback when failed insert occurs."
       (try
-        (reset-table adapter)
+        (db/reset-table adapter test-table-name)
         (adapter/with-transaction adapter
           (fn [tx]
             (adapter/execute! tx insert-sql ["Alice"])
@@ -96,4 +92,10 @@
       (is (thrown-with-msg?
            clojure.lang.ExceptionInfo
            #"Failed to close the datasource"
-           (adapter/close adapter))))))
+           (adapter/close adapter)))))
+  (testing "Exception thrown when PGMQ extension is not installed"
+    (let [mock-adapter (reify
+                         com.thirstysink.pgmq-clj.db.adapter/Adapter
+                         (query [_ _ _] []))]  ; Implement `query` method to return empty list
+      (is (thrown? clojure.lang.ExceptionInfo
+                   (ensure-pgmq-extension mock-adapter))))))
