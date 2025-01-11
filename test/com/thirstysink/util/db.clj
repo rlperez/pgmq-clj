@@ -1,5 +1,6 @@
 (ns com.thirstysink.util.db
-  (:require [com.thirstysink.pgmq-clj.db.adapters.hikari-adapter :as hikari])
+  (:require [com.thirstysink.pgmq-clj.db.adapters.hikari-adapter :as hikari]
+            [com.thirstysink.pgmq-clj.db.adapter :as adapter])
   (:import [org.testcontainers.utility DockerImageName]
            [org.testcontainers.containers PostgreSQLContainer]))
 
@@ -23,3 +24,9 @@
 
 (defn stop-postgres-container [container]
   (.stop container))
+
+(defn reset-table [adapter table_name]
+  (let [drop-table-sql (format "DROP TABLE IF EXISTS %s;" table_name)
+        create-table-sql (format "CREATE TABLE %s (id SERIAL PRIMARY KEY, name TEXT);" table_name)]
+    (adapter/execute! adapter drop-table-sql [])
+    (adapter/execute! adapter create-table-sql [])))
