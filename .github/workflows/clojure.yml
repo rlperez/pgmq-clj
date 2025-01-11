@@ -24,6 +24,7 @@ jobs:
         run: |
           bb test coverage
       - name: Upload coverage reports to Codecov
+        if: ${{ matrix.testcontainer == 'quay.io/tembo/pg17-pgmq' }}
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
