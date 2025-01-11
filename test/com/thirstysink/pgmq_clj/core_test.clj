@@ -11,10 +11,11 @@
 (use-fixtures :once
   (fn [tests]
     (try
-      (inst/enable-instrumentation `com.thirstysink.pgmq-clj.core)
+      (inst/enable-instrumentation)
       (db/start-postgres-container container)
       (tests)
       (finally
+        (inst/disable-instrumentation)
         (db/stop-postgres-container container)))))
 
 (deftest create-and-drop-queue-test
