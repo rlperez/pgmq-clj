@@ -23,3 +23,9 @@ jobs:
           TEST_CONTAINER: ${{ matrix.testcontainer }}
         run: |
           bb test coverage
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: rlperez/pgmq-clj
+          files: target/coverage/codecov.json

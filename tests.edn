@@ -24,28 +24,32 @@
    :coveralls? false,
    :emma-xml? false,
    :html? #profile {:test true
-                    :coverage false
-                    :watch false},
+                    :coverage true
+                    :watch true},
    :nop? false,
-   :codecov? false}
+   :codecov?  #profile {:test false
+                        :coverage true
+                        :watch false}}
   :randomize         {:seed 26331}
-  :color?             true
+  :color? #profile {:test true
+                        :coverage false
+                        :watch false},
   :watch?   #profile {:coverage false
                       :test false
-                      :watch true}
+                      :watch true},
   :reporter #profile {:coverage kaocha.report/documentation
                       :test [kaocha.report.progress/progress kaocha.report/fail-summary]
-                      :watch [kaocha.report/dots kaocha.report/fail-summary]}
+                      :watch [kaocha.report/dots kaocha.report/fail-summary]},
   :parallel #profile {:coverage true
                       :test true
-                      :watch false}
+                      :watch false},
   :fail-fast #profile {:coverage false
                        :test false
-                       :watch true}
+                       :watch true},
   :kaocha.plugin.profiling/profiling? #profile {:coverage true
                                                 :test false
-                                                :watch false}
+                                                :watch false},
   :kaocha.plugin.profiling/count #profile {:coverage 5
                                            :test 0
-                                           :watch 0}
+                                           :watch 0},
   :capture-output?    false}
