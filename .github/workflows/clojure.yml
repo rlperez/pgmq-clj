@@ -9,10 +9,17 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    strategy:
+      matrix:
+        testcontainer:
+          - quay.io/tembo/pg15-pgmq
+          - quay.io/tembo/pg16-pgmq
+          - quay.io/tembo/pg17-pgmq
     steps:
       - uses: actions/checkout@v4
       - uses: jdx/mise-action@v2
       - name: Run tests
+        env:
+          TEST_CONTAINER: ${{ matrix.testcontainer }}
         run: |
           bb test coverage

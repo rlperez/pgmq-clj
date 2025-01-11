@@ -4,11 +4,13 @@
            [org.testcontainers.containers PostgreSQLContainer]))
 
 (defn pgmq-container []
-  (doto
-   (PostgreSQLContainer.
-    (-> (DockerImageName/parse "tembo.docker.scarf.sh/tembo/pg17-pgmq:latest")
-        (.asCompatibleSubstituteFor "postgres")))
-    (.withInitScript "sql/init.sql")))
+  (let [image-name (or (System/getenv "TEST_CONTAINER")
+                       "tembo.docker.scarf.sh/tembo/pg17-pgmq:latest")] ;; Fallback if TEST_CONTAINER is not set
+    (doto
+     (PostgreSQLContainer.
+      (-> (DockerImageName/parse image-name)
+          (.asCompatibleSubstituteFor "postgres")))
+      (.withInitScript "sql/init.sql"))))
 
 (defn start-postgres-container [container]
   (.start container)
