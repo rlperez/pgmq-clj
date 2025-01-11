@@ -8,8 +8,14 @@
   (doseq [[name _] (ns-publics ns)]
     (action (symbol (str ns) (str name)))))
 
-(defn enable-instrumentation [ns]
-  (instrument-namespace ns stest/instrument))
+(defn enable-instrumentation
+  ([]
+   (enable-instrumentation `com.thirstysink.pgmq-clj.core))  ;; Use *ns* to instrument the current namespace
+  ([ns]
+   (instrument-namespace ns stest/instrument)))  ;; Ensure the correct namespace is instrumented
 
-(defn disable-instrumentation [ns]
-  (instrument-namespace ns stest/unstrument))
+(defn disable-instrumentation
+  ([]
+   (disable-instrumentation `com.thirstysink.pgmq-clj.core))  ;; Use *ns* to disable the current namespace's instrumentation
+  ([ns]
+   (instrument-namespace ns stest/unstrument)))  ;; Uninstrument the namespace
