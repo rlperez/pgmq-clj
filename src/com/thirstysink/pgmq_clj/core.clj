@@ -42,30 +42,15 @@
   :args (s/cat :adapter ::adapter :queue-name ::queue-name)
   :ret nil)
 
-(defn create-queue [adapter queue-name]
-  (let [create-sql "SELECT pgmq.create(?);"]
-    (adapter/execute! adapter create-sql [queue-name])))
-
 (s/fdef drop-queue
   :args (s/cat :adapter ::adapter :queue-name ::queue-name)
   :ret boolean?)
-
-(defn drop-queue [adapter queue-name]
-  (let [drop-sql "SELECT pgmq.drop_queue(?);"
-        result (adapter/query adapter drop-sql [queue-name])]
-    (get-in (first result) [:drop_queue])))
 
 (s/fdef send-message
   :args (s/cat :adapter ::adapter
                :queue-name ::queue-name
                :payload ::json)
   :ret int?)
-
-(defn send-message [adapter queue-name payload]
-  (let [json-payload (ches/generate-string payload)
-        send-sql "SELECT * from pgmq.send(?,?::jsonb);"
-        result (adapter/query adapter send-sql [queue-name json-payload])]
-    (get-in (first result) [:send])))
 
 (s/fdef read-message
   :args (s/cat :adapter ::adapter
@@ -74,6 +59,21 @@
                :quantity ::quantity
                :filter ::json)
   :ret ::table-result)
+
+(defn create-queue [adapter queue-name]
+  (let [create-sql "SELECT pgmq.create(?);"]
+    (adapter/execute! adapter create-sql [queue-name])))
+
+(defn drop-queue [adapter queue-name]
+  (let [drop-sql "SELECT pgmq.drop_queue(?);"
+        result (adapter/query adapter drop-sql [queue-name])]
+    (get-in (first result) [:drop_queue])))
+
+(defn send-message [adapter queue-name payload]
+  (let [json-payload (ches/generate-string payload)
+        send-sql "SELECT * from pgmq.send(?,?::jsonb);"
+        result (adapter/query adapter send-sql [queue-name json-payload])]
+    (get-in (first result) [:send])))
 
 (defn read-message [adapter queue-name visible_time quantity filter]
   (let [json-filter (ches/generate-string filter)
