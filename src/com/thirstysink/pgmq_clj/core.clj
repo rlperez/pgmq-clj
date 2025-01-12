@@ -60,6 +60,12 @@
                :filter ::json)
   :ret ::table-result)
 
+(s/fdef delete-message
+  :args (s/cat :adapter ::adapter
+               :queue-name ::queue-name
+               :msg-id ::msg-id)
+  :ret boolean?)
+
 (defn create-queue [adapter queue-name]
   (let [create-sql "SELECT pgmq.create(?);"]
     (adapter/execute! adapter create-sql [queue-name])))
@@ -81,9 +87,9 @@
         result (adapter/query adapter read-sql [queue-name visible_time quantity json-filter])]
     result))
 
-(defn pop-message [adapter queue-name] nil)
-
 (defn delete-message [adapter queue-name msg-id] nil)
+
+(defn pop-message [adapter queue-name] nil)
 
 (defn archive-message [adapter queue-name msg-id] nil)
 
