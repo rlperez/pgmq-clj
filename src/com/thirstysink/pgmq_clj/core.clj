@@ -28,7 +28,10 @@
                           (catch Exception _ false)))
         :instant #(instance? java.time.Instant %)))
 
-(s/def ::msg-id int?)
+(s/def ::msg-id (s/and number? pos?))
+
+(s/def ::msg-ids
+  (s/and (s/coll-of ::msg-id) #(seq %)))
 
 (s/def ::read-ct int?)
 
@@ -68,7 +71,7 @@
 (s/fdef delete-message
   :args (s/cat :adapter ::adapter
                :queue-name ::queue-name
-               :msg-id ::msg-id)
+               :msg-ids ::msg-ids)
   :ret boolean?)
 
 (defn create-queue [adapter queue-name]
@@ -90,9 +93,12 @@
   (let [json-filter (ches/generate-string filter)
         read-sql "SELECT * FROM pgmq.read(?,?::integer,?::integer,?::jsonb);"
         result (adapter/query adapter read-sql [queue-name visible_time quantity json-filter])]
-    result))
+    (seq result)))
 
-(defn delete-message [adapter queue-name msg-id] nil)
+(defn delete-message [adapter queue-name msg-ids]
+  (let [delete-sql "SELECT pgmq.delete(?,?);"
+        result (adapter/execute! adapter delete-sql [queue-name msg-ids])]
+    (get-in (first result) [:delete])))
 
 (defn pop-message [adapter queue-name] nil)
 
