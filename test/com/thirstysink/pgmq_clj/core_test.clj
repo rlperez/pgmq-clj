@@ -121,43 +121,54 @@
           (is (= 1 (count result-baz-before)))
           (is (= (get-in (first result-baz-before) [:msg_id]) 2)))
         (Thread/sleep 1500)
-        ;; After sleeping past the visibility time we should have both foos, bar and baz
+        ;; sAfter sleeping past the visibility time we should have both foos, bar and baz
         (let [result-after (core/read-message adapter queue-name visibility-time quantity {})]
           (is (= 2 (count result-after)))))
       (core/drop-queue adapter queue-name))))
 
 (deftest read-message-spec-test
-  (let [adapter (db/setup-adapter container)]
-    (testing "read-message spec validation"
-      (let [valid-args {:adapter adapter
-                        :queue-name "test-queue"
-                        :visibility_time 30
-                        :quantity 2}
-            invalid-args {:adapter adapter
-                          :queue-name ""
-                          :visibility_time -1
-                          :quantity 0}]
-        (is (s/valid? ::core/adapter (:adapter valid-args)) "Adapter should satisfy the ::adapter spec")
-        (is (s/valid? ::core/queue-name (:queue-name valid-args)) "Queue name should satisfy the ::queue-name spec")
-        (is (s/valid? ::core/visibility_time (:visibility_time valid-args)) "Visibility time should satisfy the ::visibility_time spec")
-        (is (s/valid? ::core/quantity (:quantity valid-args)) "Quantity should satisfy the ::quantity spec")
-
-        (is (not (s/valid? ::core/queue-name (:queue-name invalid-args))) "Invalid queue name should fail the ::queue-name spec")
-        (is (not (s/valid? ::core/visibility_time (:visibility_time invalid-args))) "Negative visibility_time should fail the ::visibility_time spec")
-        (is (not (s/valid? ::core/quantity (:quantity invalid-args))) "Zero quantity should fail the ::quantity spec")))))
+  (let [adapter (db/setup-adapter container)
+        queue-name "test-queue"]
+    (testing "read-message spec validation valid arguments"
+      (is (seq? (core/read-message adapter queue-name 30 100 {})))
+      (is (seq? (core/read-message adapter queue-name 30 100 {:foo "bar"}))))
+    (testing "read-message spec validates invalid adapter"
+      (is (thrown-with-msg? (core/read-message nil queue-name 10 3 {})))
+      (is (thrown-with-msg? (core/read-message {} queue-name 10 3 {}))))
+    (testing "read-message spec validates invalid queue-name"
+      (is (thrown-with-msg? (core/read-message adapter 8008 10 3 {})))
+      (is (thrown-with-msg? (core/read-message adapter nil 10 3 {}))))
+    (testing "read-message spec validates invalid visibility_time"
+      (is (thrown-with-msg? (core/read-message adapter queue-name -1776 3 {})))
+      (is (thrown-with-msg? (core/read-message adapter queue-name "invalid" 3 {})))
+      (is (thrown-with-msg? (core/read-message adapter queue-name nil 3 {}))))
+    (testing "read-message spec validates invalid quantity"
+      (is (thrown-with-msg? (core/read-message adapter queue-name 30 -3 {})))
+      (is (thrown-with-msg? (core/read-message adapter queue-name 30 "invalid" {})))
+      (is (thrown-with-msg? (core/read-message adapter queue-name 30 nil {}))))
+    (testing "read-message spec validates invalid invalid filter"
+      (is (thrown-with-msg? (core/read-message adapter queue-name 30 3 nil)))
+      (is (thrown-with-msg? (core/read-message adapter queue-name 30 3 [1 2 3])))
+      (is (thrown-with-msg? (core/read-message adapter queue-name 30 3 true))))))
 
 (deftest send-message-spec-test
-  (let [adapter (db/setup-adapter container)]
-    (testing "send-message spec validation"
-      (let [valid-args {:adapter adapter
-                        :queue-name "test-queue"
-                        :payload {:foo "bar"}}
-            invalid-args {:adapter adapter
-                          :queue-name ""
-                          :payload nil}]
-        (is (s/valid? ::core/adapter (:adapter valid-args)) "Adapter should satisfy the :core/adapter spec")
-        (is (s/valid? ::core/queue-name (:queue-name valid-args)) "Queue name should satisfy the ::queue-name spec")
-        (is (s/valid? ::core/json (:payload valid-args)) "Payload should be a valid string")
+  (let [adapter (db/setup-adapter container)
+        queue-name "test-queue"]
+    (testing "send-message spec validation valid arguments"
+      (is (s/valid? ::core/msg-id (core/send-message adapter queue-name {:foo "bar"})))
+      (is (s/valid? ::core/msg-id (core/send-message adapter queue-name {})))
+      (is (s/valid? ::core/msg-id (core/send-message adapter queue-name [])))
+      (is (s/valid? ::core/msg-id (core/send-message adapter queue-name 1)))
+      (is (s/valid? ::core/msg-id (core/send-message adapter queue-name "some string"))))
+    (testing "send-message spec validation invalid adapter"
+      (is (thrown-with-msg? (core/send-message nil queue-name {:foo "bar"})))
+      (is (thrown-with-msg? (core/send-message {} queue-name {:foo "bar"}))))
+    (testing "send-message spec validation invalid queue-name"
+      (is (thrown-with-msg? (core/send-message adapter 8008 {})))
+      (is (thrown-with-msg? (core/send-message adapter nil {}))))
+    (testing "send-message spec validation invalid payload"
+      (is (thrown-with-msg? (core/send-message adapter 8008 nil))))))
 
-        (is (not (s/valid? ::core/queue-name (:queue-name invalid-args))) "Invalid queue name should fail the ::queue-name spec")
-        (is (not (s/valid? ::core/json (:payload invalid-args))) "Nil payload should fail the string? spec")))))
+(deftest delete-message-spec-test
+  (let [adapter (db/setup-adapter container)])
+  nil)
