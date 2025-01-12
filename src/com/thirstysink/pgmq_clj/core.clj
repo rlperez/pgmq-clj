@@ -13,7 +13,12 @@
 
 (s/def ::quantity (s/and int? #(> % 0)))
 
-(s/def ::json map?)
+(s/def ::json
+  (s/or :map map?
+        :vector vector?
+        :string string?
+        :number number?
+        :boolean boolean?))
 
 (s/def ::timestamp
   (s/or :string (s/and string?
