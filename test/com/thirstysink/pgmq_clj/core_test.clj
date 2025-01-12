@@ -121,7 +121,7 @@
           (is (= 1 (count result-baz-before)))
           (is (= (get-in (first result-baz-before) [:msg_id]) 2)))
         (Thread/sleep 1500)
-        ;; sAfter sleeping past the visibility time we should have both foos, bar and baz
+        ;; After sleeping past the visibility time we should have both foos, bar and baz
         (let [result-after (core/read-message adapter queue-name visibility-time quantity {})]
           (is (= 2 (count result-after)))))
       (core/drop-queue adapter queue-name))))
