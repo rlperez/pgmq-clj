@@ -9,31 +9,45 @@
             :kaocha.plugin/profiling]
   :cloverage/opts
   {:ns-exclude-regex [],
-   :text? false,
-   :lcov? false,
+   :debug? false,
+   :text?  #profile {:test false
+                     :coverage true
+                     :watch false},
+   :lcov?  #profile {:test false
+                     :coverage true
+                     :watch false},
    :high-watermark 80,
-   :fail-threshold #profile {:test 90
-                             :coverage 90
-                             :watch 0},
+   :fail-under-line 100,
+   :fail-threshold 85,
+   :line-fail-threshold #profile {:test 90
+                                  :coverage 90
+                                  :watch 0},
+   :form-fail-threshold  #profile {:test 85
+                                   :coverage 85
+                                   :watch 0},
    :output "target/coverage",
    :low-watermark 50,
    :ns-regex [],
    :summary? #profile {:test false
                        :coverage true
                        :watch false},
-   :coveralls? false,
-   :emma-xml? false,
+   :coveralls?  #profile {:test false
+                          :coverage true
+                          :watch false},
+   :emma-xml?  #profile {:test false
+                         :coverage true
+                         :watch false},
    :html? #profile {:test true
                     :coverage true
                     :watch true},
    :nop? false,
-   :codecov?  #profile {:test false
-                        :coverage true
-                        :watch false}}
-  :randomize         {:seed 26331}
+   :codecov? #profile {:test false
+                       :coverage true
+                       :watch false}},
+  :randomize         {:seed 26331},
   :color? #profile {:test true
-                        :coverage false
-                        :watch false},
+                    :coverage false
+                    :watch false},
   :watch?   #profile {:coverage false
                       :test false
                       :watch true},
@@ -42,14 +56,14 @@
                       :watch [kaocha.report/dots kaocha.report/fail-summary]},
   :parallel #profile {:coverage true
                       :test true
-                      :watch false},
+                      :watch true},
   :fail-fast #profile {:coverage false
                        :test false
                        :watch true},
   :kaocha.plugin.profiling/profiling? #profile {:coverage true
                                                 :test false
                                                 :watch false},
-  :kaocha.plugin.profiling/count #profile {:coverage 5
+  :kaocha.plugin.profiling/count #profile {:coverage 3
                                            :test 0
                                            :watch 0},
   :capture-output?    false}
