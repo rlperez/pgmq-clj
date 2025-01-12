@@ -60,7 +60,7 @@
 (defn ensure-pgmq-extension [adapter]
   (let [check-extension-sql "SELECT extname FROM pg_extension WHERE extname = 'pgmq';"
         extension-check (adapter/query adapter check-extension-sql [])]
-    (if (empty? extension-check)
+    (when (empty? extension-check)
       (throw (ex-info "PGMQ extension is not installed." {:cause :extension-missing})))))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
