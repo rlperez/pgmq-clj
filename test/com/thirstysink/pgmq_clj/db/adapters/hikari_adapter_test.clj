@@ -84,7 +84,6 @@
              #"Error in transaction"
              (adapter/with-transaction adapter (fn [_tx] (println "Transaction logic"))))))))
   (testing "HikariAdapter.close throws exception"
-    ;; Mock the HikariDataSource to throw an exception on `.close`
     (let [mock-datasource (proxy [HikariDataSource] []
                             (close []
                               (throw (Exception. "Mock close failure"))))
@@ -96,6 +95,6 @@
   (testing "Exception thrown when PGMQ extension is not installed"
     (let [mock-adapter (reify
                          com.thirstysink.pgmq-clj.db.adapter/Adapter
-                         (query [_ _ _] []))]  ; Implement `query` method to return empty list
+                         (query [_ _ _] []))]
       (is (thrown? clojure.lang.ExceptionInfo
                    (ensure-pgmq-extension mock-adapter))))))
