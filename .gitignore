@@ -16,3 +16,4 @@ pom.xml.asc
 *.env
 .lsp
 *.log
+debug-*
