@@ -59,7 +59,6 @@
           (is (empty? result-bar-before)))
         ;; Reading unfiltered now should also fetch foo baz
         (let [result-baz-before (core/read-message adapter queue-name visibility-time quantity {})]
-          (println result-baz-before)
           (is (seq result-baz-before))
           (is (= 1 (count result-baz-before)))
           (is (= (get-in (first result-baz-before) [:msg_id]) 2)))
@@ -80,13 +79,11 @@
                           :queue-name ""
                           :visibility_time -1
                           :quantity 0}]
-        ;; Validate valid arguments
         (is (s/valid? ::core/adapter (:adapter valid-args)) "Adapter should satisfy the ::adapter spec")
         (is (s/valid? ::core/queue-name (:queue-name valid-args)) "Queue name should satisfy the ::queue-name spec")
         (is (s/valid? ::core/visibility_time (:visibility_time valid-args)) "Visibility time should satisfy the ::visibility_time spec")
         (is (s/valid? ::core/quantity (:quantity valid-args)) "Quantity should satisfy the ::quantity spec")
 
-        ;; Validate invalid arguments
         (is (not (s/valid? ::core/queue-name (:queue-name invalid-args))) "Invalid queue name should fail the ::queue-name spec")
         (is (not (s/valid? ::core/visibility_time (:visibility_time invalid-args))) "Negative visibility_time should fail the ::visibility_time spec")
         (is (not (s/valid? ::core/quantity (:quantity invalid-args))) "Zero quantity should fail the ::quantity spec")))))
@@ -100,11 +97,9 @@
             invalid-args {:adapter adapter
                           :queue-name ""
                           :payload nil}]
-        ;; Validate valid arguments
         (is (s/valid? ::core/adapter (:adapter valid-args)) "Adapter should satisfy the :core/adapter spec")
         (is (s/valid? ::core/queue-name (:queue-name valid-args)) "Queue name should satisfy the ::queue-name spec")
         (is (s/valid? ::core/json (:payload valid-args)) "Payload should be a valid string")
 
-        ;; Validate invalid arguments
         (is (not (s/valid? ::core/queue-name (:queue-name invalid-args))) "Invalid queue name should fail the ::queue-name spec")
         (is (not (s/valid? ::core/json (:payload invalid-args))) "Nil payload should fail the string? spec")))))

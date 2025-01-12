@@ -15,9 +15,9 @@
 (deftest test-timestamp-spec
   (testing "Valid string formats"
     (is (s/valid? ::core/timestamp "2025-01-11T14:30:00"))
-    (is (s/valid? ::core/timestamp "2025-01-11T14:30:00.123456")) ;; With microseconds
-    (is (s/valid? ::core/timestamp "2025-01-11T14:30:00.000000")) ;; With microseconds
-    (is (s/valid? ::core/timestamp "2025-01-11T14:30:00+00:00"))  ;; With timezone offset
+    (is (s/valid? ::core/timestamp "2025-01-11T14:30:00.123456"))
+    (is (s/valid? ::core/timestamp "2025-01-11T14:30:00.000000"))
+    (is (s/valid? ::core/timestamp "2025-01-11T14:30:00+00:00"))
     (is (s/valid? ::core/timestamp (Instant/now))))
   (testing "Invalid string formats"
     (is (not (s/valid? ::core/timestamp "11/01/2025 14:30:00")))
