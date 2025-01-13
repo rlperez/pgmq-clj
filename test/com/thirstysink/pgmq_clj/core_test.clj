@@ -86,7 +86,8 @@
     (core/create-queue adapter queue-name)
     (testing "delete single message"
       (let [msg-id (core/send-message adapter queue-name {:foo "bar"})]
-        (is (true? (core/delete-message adapter queue-name msg-id)))))
+        (is (true? (core/delete-message adapter queue-name msg-id)))
+        (is (nil? (core/read-message adapter queue-name 1 1 {})))))
     (testing "delete message that doesn't exist"
       (is (false? (core/delete-message adapter queue-name 18728))))
     (core/drop-queue adapter queue-name)))
