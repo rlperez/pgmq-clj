@@ -71,7 +71,7 @@
 (s/fdef delete-message
   :args (s/cat :adapter ::adapter
                :queue-name ::queue-name
-               :msg-ids ::msg-ids)
+               :msg-id ::msg-id)
   :ret boolean?)
 
 (defn create-queue [adapter queue-name]
@@ -95,14 +95,22 @@
         result (adapter/query adapter read-sql [queue-name visible_time quantity json-filter])]
     (seq result)))
 
-(defn delete-message [adapter queue-name msg-ids]
+(defn delete-message [adapter queue-name msg-id]
   (let [delete-sql "SELECT pgmq.delete(?,?);"
-        result (adapter/execute! adapter delete-sql [queue-name msg-ids])]
+        result (adapter/execute! adapter delete-sql [queue-name msg-id])]
     (get-in (first result) [:delete])))
 
-(defn pop-message [adapter queue-name] nil)
+;; (defn pop-message [adapter queue-name] nil)
 
-(defn archive-message [adapter queue-name msg-id] nil)
+;; (defn archive-message [adapter queue-name msg-id] nil)
+
+;; delete-batch
+;; send-batch
+;; list-queues
+;; metrics
+;; metrics-all
+;; create-partitioned
+;; read-with-polling
 
 (if inst/instrumentation-enabled?
   (inst/enable-instrumentation)

@@ -80,6 +80,17 @@
           (is (= 2 (count result-after)))))
       (core/drop-queue adapter queue-name))))
 
+(deftest delete-message-test
+  (let [adapter (db/setup-adapter container)
+        queue-name "test-queue"]
+    (core/create-queue adapter queue-name)
+    (testing "delete single message"
+      (let [msg-id (core/send-message adapter queue-name {:foo "bar"})]
+        (is (true? (core/delete-message adapter queue-name msg-id)))))
+    (testing "delete message that doesn't exist"
+      (is (false? (core/delete-message adapter queue-name 18728))))
+    (core/drop-queue adapter queue-name)))
+
 (deftest create-queue-name-spec-test
   (let [adapter (db/setup-adapter container)
         expected-msg #"Call to com.thirstysink.pgmq-clj.core/create-queue did not conform to spec."]
@@ -217,31 +228,27 @@
   (let [adapter (->MockAdapter)
         queue-name "test-queue"]
     (testing "delete-message spec validation with valid arguments"
-      (is (s/valid? boolean? (core/delete-message adapter queue-name [100]))))
+      (is (s/valid? boolean? (core/delete-message adapter queue-name 100))))
     (testing "delete-message spec validation with invalid adapter"
       (is (thrown-with-msg? clojure.lang.ExceptionInfo
                             #"Call to com.thirstysink.pgmq-clj.core/delete-message did not conform to spec."
-                            (core/delete-message nil queue-name [100])))
+                            (core/delete-message nil queue-name 100)))
       (is (thrown-with-msg? clojure.lang.ExceptionInfo
                             #"Call to com.thirstysink.pgmq-clj.core/delete-message did not conform to spec."
-                            (core/delete-message {} queue-name [100]))))
+                            (core/delete-message {} queue-name 100))))
     (testing "delete-message spec validation with invalid queue-name"
       (is (thrown-with-msg? clojure.lang.ExceptionInfo
                             #"Call to com.thirstysink.pgmq-clj.core/delete-message did not conform to spec."
-                            (core/delete-message adapter 8008 [100])))
+                            (core/delete-message adapter 8008 100)))
       (is (thrown-with-msg? clojure.lang.ExceptionInfo
                             #"Call to com.thirstysink.pgmq-clj.core/delete-message did not conform to spec."
-                            (core/delete-message adapter nil [100]))))
+                            (core/delete-message adapter nil 100))))
     (testing "delete-message spec validation with invalid payload"
       (is (thrown-with-msg? clojure.lang.ExceptionInfo
                             #"Call to com.thirstysink.pgmq-clj.core/delete-message did not conform to spec."
                             (core/delete-message adapter queue-name nil)))
       (is (thrown-with-msg? clojure.lang.ExceptionInfo
                             #"Call to com.thirstysink.pgmq-clj.core/delete-message did not conform to spec."
-                            (core/delete-message adapter queue-name nil)))
-      (is (thrown-with-msg? clojure.lang.ExceptionInfo
-                            #"Call to com.thirstysink.pgmq-clj.core/delete-message did not conform to spec."
-                            (core/delete-message adapter queue-name ["not an int seq"]))))))
+                            (core/delete-message adapter queue-name "not an int seq"))))))
 
 ;; TODO: separate these with annotations of more like integration tests and unit tests
-;; TODO: Add a delete integration style test
