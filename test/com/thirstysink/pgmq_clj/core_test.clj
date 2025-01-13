@@ -9,6 +9,18 @@
 
 (defonce container (db/pgmq-container))
 
+(defrecord MockAdapter []
+  adapter/Adapter
+  (execute! [_ _ _] [{:delete true}])
+  (query [_ _ _] [{:msg_id 1
+                   :read_ct 1
+                   :enqueued_at (java.time.Instant/now)
+                   :vt (java.time.Instant/now)
+                   :message "{\"foo\": \"bar\"}"
+                   :headers nil}])
+  (with-transaction [_ f] (f))
+  (close [_] nil))
+
 (use-fixtures :once
   (fn [tests]
     (try
@@ -28,64 +40,6 @@
     (let [result (adapter/query adapter "SELECT * FROM pgmq.list_queues() WHERE queue_name = ?;" [queue-name])]
       (is (= 1 (count result)))
       (is (= queue-name (:queue_name (first result)))))))
-
-(deftest create-queue-name-test
-  (let [adapter (db/setup-adapter container)
-        expected-msg #"Call to com.thirstysink.pgmq-clj.core/create-queue did not conform to spec."]
-    (testing "create-queue throws exception with an nil adapter"
-      (is (thrown-with-msg?
-           clojure.lang.ExceptionInfo
-           expected-msg
-           (core/create-queue nil "test-queue"))))
-    (testing "create-queue throws exception with an invalid adapter"
-      (is (thrown-with-msg?
-           clojure.lang.ExceptionInfo
-           expected-msg
-           (core/create-queue [] "test-queue"))))
-    (testing "create-queue throws exception with an empty queue-name"
-      (is (thrown-with-msg?
-           clojure.lang.ExceptionInfo
-           expected-msg
-           (core/create-queue adapter ""))))
-    (testing "create-queue throws exception with a nil queue-name"
-      (is (thrown-with-msg?
-           clojure.lang.ExceptionInfo
-           expected-msg
-           (core/create-queue adapter nil))))
-    (testing "create-queue throws exception with a non string queue-name"
-      (is (thrown-with-msg?
-           clojure.lang.ExceptionInfo
-           expected-msg
-           (core/create-queue adapter 1))))))
-
-(deftest drop-queue-name-test
-  (let [adapter (db/setup-adapter container)
-        expected-msg #"Call to com.thirstysink.pgmq-clj.core/drop-queue did not conform to spec."]
-    (testing "drop-queue throws exception with an nil adapter"
-      (is (thrown-with-msg?
-           clojure.lang.ExceptionInfo
-           expected-msg
-           (core/drop-queue nil "test-queue"))))
-    (testing "drop-queue throws exception with an invalid adapter"
-      (is (thrown-with-msg?
-           clojure.lang.ExceptionInfo
-           expected-msg
-           (core/drop-queue [] "test-queue"))))
-    (testing "drop-queue throws exception with an empty queue-name"
-      (is (thrown-with-msg?
-           clojure.lang.ExceptionInfo
-           expected-msg
-           (core/drop-queue adapter ""))))
-    (testing "drop-queue throws exception with a nil queue-name"
-      (is (thrown-with-msg?
-           clojure.lang.ExceptionInfo
-           expected-msg
-           (core/drop-queue adapter nil))))
-    (testing "drop-queue throws exception with a non string queue-name"
-      (is (thrown-with-msg?
-           clojure.lang.ExceptionInfo
-           expected-msg
-           (core/drop-queue adapter 1))))))
 
 (deftest read-message-visibility-time-test
   (let [adapter (db/setup-adapter container)
@@ -126,38 +80,176 @@
           (is (= 2 (count result-after)))))
       (core/drop-queue adapter queue-name))))
 
-(deftest read-message-spec-test
-  (let [adapter (db/setup-adapter container)]
-    (testing "read-message spec validation"
-      (let [valid-args {:adapter adapter
-                        :queue-name "test-queue"
-                        :visibility_time 30
-                        :quantity 2}
-            invalid-args {:adapter adapter
-                          :queue-name ""
-                          :visibility_time -1
-                          :quantity 0}]
-        (is (s/valid? ::core/adapter (:adapter valid-args)) "Adapter should satisfy the ::adapter spec")
-        (is (s/valid? ::core/queue-name (:queue-name valid-args)) "Queue name should satisfy the ::queue-name spec")
-        (is (s/valid? ::core/visibility_time (:visibility_time valid-args)) "Visibility time should satisfy the ::visibility_time spec")
-        (is (s/valid? ::core/quantity (:quantity valid-args)) "Quantity should satisfy the ::quantity spec")
+(deftest delete-message-test
+  (let [adapter (db/setup-adapter container)
+        queue-name "test-queue"]
+    (core/create-queue adapter queue-name)
+    (testing "delete single message"
+      (let [msg-id (core/send-message adapter queue-name {:foo "bar"})]
+        (is (true? (core/delete-message adapter queue-name msg-id)))
+        (is (nil? (core/read-message adapter queue-name 1 1 {})))))
+    (testing "delete message that doesn't exist"
+      (is (false? (core/delete-message adapter queue-name 18728))))
+    (core/drop-queue adapter queue-name)))
 
-        (is (not (s/valid? ::core/queue-name (:queue-name invalid-args))) "Invalid queue name should fail the ::queue-name spec")
-        (is (not (s/valid? ::core/visibility_time (:visibility_time invalid-args))) "Negative visibility_time should fail the ::visibility_time spec")
-        (is (not (s/valid? ::core/quantity (:quantity invalid-args))) "Zero quantity should fail the ::quantity spec")))))
+(deftest create-queue-name-spec-test
+  (let [adapter (db/setup-adapter container)
+        expected-msg #"Call to com.thirstysink.pgmq-clj.core/create-queue did not conform to spec."]
+    (testing "create-queue throws exception with an nil adapter"
+      (is (thrown-with-msg?
+           clojure.lang.ExceptionInfo
+           expected-msg
+           (core/create-queue nil "test-queue"))))
+    (testing "create-queue throws exception with an invalid adapter"
+      (is (thrown-with-msg?
+           clojure.lang.ExceptionInfo
+           expected-msg
+           (core/create-queue [] "test-queue"))))
+    (testing "create-queue throws exception with an empty queue-name"
+      (is (thrown-with-msg?
+           clojure.lang.ExceptionInfo
+           expected-msg
+           (core/create-queue adapter ""))))
+    (testing "create-queue throws exception with a nil queue-name"
+      (is (thrown-with-msg?
+           clojure.lang.ExceptionInfo
+           expected-msg
+           (core/create-queue adapter nil))))
+    (testing "create-queue throws exception with a non string queue-name"
+      (is (thrown-with-msg?
+           clojure.lang.ExceptionInfo
+           expected-msg
+           (core/create-queue adapter 1))))))
+
+(deftest drop-queue-name-spec-test
+  (let [adapter (db/setup-adapter container)
+        expected-msg #"Call to com.thirstysink.pgmq-clj.core/drop-queue did not conform to spec."]
+    (testing "drop-queue throws exception with an nil adapter"
+      (is (thrown-with-msg?
+           clojure.lang.ExceptionInfo
+           expected-msg
+           (core/drop-queue nil "test-queue"))))
+    (testing "drop-queue throws exception with an invalid adapter"
+      (is (thrown-with-msg?
+           clojure.lang.ExceptionInfo
+           expected-msg
+           (core/drop-queue [] "test-queue"))))
+    (testing "drop-queue throws exception with an empty queue-name"
+      (is (thrown-with-msg?
+           clojure.lang.ExceptionInfo
+           expected-msg
+           (core/drop-queue adapter ""))))
+    (testing "drop-queue throws exception with a nil queue-name"
+      (is (thrown-with-msg?
+           clojure.lang.ExceptionInfo
+           expected-msg
+           (core/drop-queue adapter nil))))
+    (testing "drop-queue throws exception with a non string queue-name"
+      (is (thrown-with-msg?
+           clojure.lang.ExceptionInfo
+           expected-msg
+           (core/drop-queue adapter 1))))))
+
+(deftest read-message-spec-test
+  (let [adapter (->MockAdapter)
+        queue-name "test-queue"]
+    (testing "read-message spec validation valid arguments"
+      (is (seq? (core/read-message adapter queue-name 30 100 {})))
+      (is (seq? (core/read-message adapter queue-name 30 100 {:foo "bar"}))))
+    (testing "read-message spec validates invalid adapter"
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Call to com.thirstysink.pgmq-clj.core/read-message did not conform to spec"
+                            (core/read-message nil queue-name 10 3 {})))
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Call to com.thirstysink.pgmq-clj.core/read-message did not conform to spec"
+                            (core/read-message {} queue-name 10 3 {}))))
+    (testing "read-message spec validates invalid queue-name"
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Call to com.thirstysink.pgmq-clj.core/read-message did not conform to spec"
+                            (core/read-message adapter 8008 10 3 {})))
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Call to com.thirstysink.pgmq-clj.core/read-message did not conform to spec"
+                            (core/read-message adapter nil 10 3 {}))))
+    (testing "read-message spec validates invalid visibility_time"
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Call to com.thirstysink.pgmq-clj.core/read-message did not conform to spec"
+                            (core/read-message adapter queue-name -1776 3 {})))
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Call to com.thirstysink.pgmq-clj.core/read-message did not conform to spec"
+                            (core/read-message adapter queue-name "invalid" 3 {})))
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Call to com.thirstysink.pgmq-clj.core/read-message did not conform to spec"
+                            (core/read-message adapter queue-name nil 3 {}))))
+    (testing "read-message spec validates invalid quantity"
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Call to com.thirstysink.pgmq-clj.core/read-message did not conform to spec"
+                            (core/read-message adapter queue-name 30 -3 {})))
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Call to com.thirstysink.pgmq-clj.core/read-message did not conform to spec"
+                            (core/read-message adapter queue-name 30 "invalid" {})))
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Call to com.thirstysink.pgmq-clj.core/read-message did not conform to spec"
+                            (core/read-message adapter queue-name 30 nil {}))))
+    (testing "read-message spec validates invalid invalid filter"
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Call to com.thirstysink.pgmq-clj.core/read-message did not conform to spec"
+                            (core/read-message adapter queue-name 30 3 nil))))))
 
 (deftest send-message-spec-test
-  (let [adapter (db/setup-adapter container)]
-    (testing "send-message spec validation"
-      (let [valid-args {:adapter adapter
-                        :queue-name "test-queue"
-                        :payload {:foo "bar"}}
-            invalid-args {:adapter adapter
-                          :queue-name ""
-                          :payload nil}]
-        (is (s/valid? ::core/adapter (:adapter valid-args)) "Adapter should satisfy the :core/adapter spec")
-        (is (s/valid? ::core/queue-name (:queue-name valid-args)) "Queue name should satisfy the ::queue-name spec")
-        (is (s/valid? ::core/json (:payload valid-args)) "Payload should be a valid string")
+  (let [adapter (db/setup-adapter container)
+        queue-name "test-queue"]
+    (core/create-queue adapter queue-name)
+    (testing "send-message spec validation valid arguments"
+      (is (s/valid? ::core/msg-id (core/send-message adapter queue-name {:foo "bar"})))
+      (is (s/valid? ::core/msg-id (core/send-message adapter queue-name {})))
+      (is (s/valid? ::core/msg-id (core/send-message adapter queue-name [])))
+      (is (s/valid? ::core/msg-id (core/send-message adapter queue-name 1)))
+      (is (s/valid? ::core/msg-id (core/send-message adapter queue-name "some string"))))
+    (testing "send-message spec validation invalid adapter"
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Call to com.thirstysink.pgmq-clj.core/send-message did not conform to spec."
+                            (core/send-message nil queue-name {:foo "bar"})))
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Call to com.thirstysink.pgmq-clj.core/send-message did not conform to spec."
+                            (core/send-message {} queue-name {:foo "bar"}))))
+    (testing "send-message spec validation invalid queue-name"
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Call to com.thirstysink.pgmq-clj.core/send-message did not conform to spec."
+                            (core/send-message adapter 8008 {})))
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Call to com.thirstysink.pgmq-clj.core/send-message did not conform to spec."
+                            (core/send-message adapter nil {}))))
+    (testing "send-message spec validation invalid payload"
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Call to com.thirstysink.pgmq-clj.core/send-message did not conform to spec."
+                            (core/send-message adapter 8008 nil))))
+    (core/drop-queue adapter queue-name)))
 
-        (is (not (s/valid? ::core/queue-name (:queue-name invalid-args))) "Invalid queue name should fail the ::queue-name spec")
-        (is (not (s/valid? ::core/json (:payload invalid-args))) "Nil payload should fail the string? spec")))))
+(deftest delete-message-spec-test
+  (let [adapter (->MockAdapter)
+        queue-name "test-queue"]
+    (testing "delete-message spec validation with valid arguments"
+      (is (s/valid? boolean? (core/delete-message adapter queue-name 100))))
+    (testing "delete-message spec validation with invalid adapter"
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Call to com.thirstysink.pgmq-clj.core/delete-message did not conform to spec."
+                            (core/delete-message nil queue-name 100)))
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Call to com.thirstysink.pgmq-clj.core/delete-message did not conform to spec."
+                            (core/delete-message {} queue-name 100))))
+    (testing "delete-message spec validation with invalid queue-name"
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Call to com.thirstysink.pgmq-clj.core/delete-message did not conform to spec."
+                            (core/delete-message adapter 8008 100)))
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Call to com.thirstysink.pgmq-clj.core/delete-message did not conform to spec."
+                            (core/delete-message adapter nil 100))))
+    (testing "delete-message spec validation with invalid payload"
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Call to com.thirstysink.pgmq-clj.core/delete-message did not conform to spec."
+                            (core/delete-message adapter queue-name nil)))
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Call to com.thirstysink.pgmq-clj.core/delete-message did not conform to spec."
+                            (core/delete-message adapter queue-name "not an int seq"))))))
+
+;; TODO: separate these with annotations of more like integration tests and unit tests
