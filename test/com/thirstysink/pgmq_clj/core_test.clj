@@ -189,11 +189,7 @@
                             (core/read-message adapter queue-name 30 "invalid" {})))
       (is (thrown-with-msg? clojure.lang.ExceptionInfo
                             #"Call to com.thirstysink.pgmq-clj.core/read-message did not conform to spec"
-                            (core/read-message adapter queue-name 30 nil {}))))
-    (testing "read-message spec validates invalid invalid filter"
-      (is (thrown-with-msg? clojure.lang.ExceptionInfo
-                            #"Call to com.thirstysink.pgmq-clj.core/read-message did not conform to spec"
-                            (core/read-message adapter queue-name 30 3 nil))))))
+                            (core/read-message adapter queue-name 30 nil {}))))))
 
 (deftest send-message-spec-test
   (let [adapter (db/setup-adapter container)

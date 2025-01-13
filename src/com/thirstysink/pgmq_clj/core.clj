@@ -18,7 +18,8 @@
         :vector vector?
         :string string?
         :number number?
-        :boolean boolean?))
+        :boolean boolean?
+        :nil? nil?))
 
 (s/def ::timestamp
   (s/or :string (s/and string?
@@ -90,7 +91,9 @@
     (get-in (first result) [:send])))
 
 (defn read-message [adapter queue-name visible_time quantity filter]
-  (let [json-filter (ches/generate-string filter)
+  (let [json-filter (if (nil? filter)
+                      "{}"
+                      (ches/generate-string filter))
         read-sql "SELECT * FROM pgmq.read(?,?::integer,?::integer,?::jsonb);"
         result (adapter/query adapter read-sql [queue-name visible_time quantity json-filter])]
     (seq result)))
