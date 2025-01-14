@@ -18,7 +18,8 @@
         :vector vector?
         :string string?
         :number number?
-        :boolean boolean?))
+        :boolean boolean?
+        :nil? nil?))
 
 (s/def ::timestamp
   (s/or :string (s/and string?
@@ -38,8 +39,14 @@
 (s/def ::enqueued-at ::timestamp)
 
 (s/def ::vt ::timestamp)
-
+;; TODO: Is this a string column in the table?
 (s/def ::message string?)
+
+(s/def ::is-partitioned boolean?)
+
+(s/def ::is-unlogged boolean?)
+
+(s/def ::created-at inst?)
 
 (s/def ::table-row
   (s/keys :req-un [::msg-id ::read-ct ::enqueued-at ::vt ::message]))
@@ -51,6 +58,10 @@
   :ret nil)
 
 (s/fdef drop-queue
+  :args (s/cat :adapter ::adapter :queue-name ::queue-name)
+  :ret boolean?)
+
+(s/fdef list-queues
   :args (s/cat :adapter ::adapter :queue-name ::queue-name)
   :ret boolean?)
 
@@ -83,6 +94,12 @@
         result (adapter/query adapter drop-sql [queue-name])]
     (get-in (first result) [:drop_queue])))
 
+(defn list-queues [adapter]
+  (let [list-queues-sql "SELECT * FROM pgmq.list_queues();"]
+    (adapter/query adapter list-queues-sql [])))
+
+;; TODO: I need to add at a minimum delay
+;; TODO: Add headers as an optional field.
 (defn send-message [adapter queue-name payload]
   (let [json-payload (ches/generate-string payload)
         send-sql "SELECT * from pgmq.send(?,?::jsonb);"
@@ -90,7 +107,9 @@
     (get-in (first result) [:send])))
 
 (defn read-message [adapter queue-name visible_time quantity filter]
-  (let [json-filter (ches/generate-string filter)
+  (let [json-filter (if (nil? filter)
+                      "{}"
+                      (ches/generate-string filter))
         read-sql "SELECT * FROM pgmq.read(?,?::integer,?::integer,?::jsonb);"
         result (adapter/query adapter read-sql [queue-name visible_time quantity json-filter])]
     (seq result)))
@@ -100,10 +119,11 @@
         result (adapter/execute! adapter delete-sql [queue-name msg-id])]
     (get-in (first result) [:delete])))
 
-;; (defn pop-message [adapter queue-name] nil)
+;; TODO: (defn pop-message [adapter queue-name] nil)
 
-;; (defn archive-message [adapter queue-name msg-id] nil)
+;; TODO: (defn archive-message [adapter queue-name msg-id] nil)
 
+;; TODO:
 ;; delete-batch
 ;; send-batch
 ;; list-queues
