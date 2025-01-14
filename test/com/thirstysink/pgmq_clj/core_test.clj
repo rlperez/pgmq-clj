@@ -1,11 +1,14 @@
 (ns com.thirstysink.pgmq-clj.core-test
-  (:require [clojure.test :refer [deftest is use-fixtures testing]]
-            [clojure.spec.alpha :as s]
-            [com.thirstysink.pgmq-clj.core :as core]
-            [com.thirstysink.pgmq-clj.db.adapter :as adapter]
-            [com.thirstysink.pgmq-clj.instrumentation :as inst]
-            [com.thirstysink.util.db :as db]
-            [clojure.core :as c]))
+  (:require
+   [clojure.core :as c]
+   [clojure.spec.alpha :as s]
+   [clojure.test :refer [deftest is testing use-fixtures]]
+   [com.thirstysink.pgmq-clj.core :as core]
+   [com.thirstysink.pgmq-clj.db.adapter :as adapter]
+   [com.thirstysink.pgmq-clj.instrumentation :as inst]
+   [com.thirstysink.util.db :as db]))
+
+;; TODO: separate these with annotations of more like integration tests and unit tests
 
 (defonce container (db/pgmq-container))
 
@@ -31,25 +34,24 @@
         (inst/disable-instrumentation)
         (db/stop-postgres-container container)))))
 
-(deftest create-and-drop-queue-test
-  (let [adapter (db/setup-adapter container)
-        queue-name "test_queue"]
-
-    (core/create-queue adapter queue-name)
-
-    (let [result (adapter/query adapter "SELECT * FROM pgmq.list_queues() WHERE queue_name = ?;" [queue-name])]
-      (is (= 1 (count result)))
-      (is (= queue-name (:queue_name (first result)))))))
-
-(deftest read-message-visibility-time-test
+(deftest integration-tests
   (let [adapter (db/setup-adapter container)
         queue-name "test-queue"]
-    (testing "send-message function"
+    (testing "create-queue and drop-queue should add and remove queues"
+
+      (core/create-queue adapter queue-name)
+      ;; TODO: This is where I will test list
+      (let [result (adapter/query adapter "SELECT * FROM pgmq.list_queues() WHERE queue_name = ?;" [queue-name])]
+        (is (= 1 (count result)))
+        (is (= queue-name (:queue_name (first result))))))
+
+    (testing "send-message should send and return an id"
       (core/create-queue adapter queue-name)
       (let [payload {:foo "bar"}
             result (core/send-message adapter queue-name payload)]
         (is (some? result))
-        (is (number? result)))
+        (is (number? result))
+        (is (= result 1)))
       (core/drop-queue adapter queue-name))
 
     (testing "read-message should respect visibility time"
@@ -78,19 +80,17 @@
         ;; After sleeping past the visibility time we should have both foos, bar and baz
         (let [result-after (core/read-message adapter queue-name visibility-time quantity {})]
           (is (= 2 (count result-after)))))
-      (core/drop-queue adapter queue-name))))
+      (core/drop-queue adapter queue-name))
 
-(deftest delete-message-test
-  (let [adapter (db/setup-adapter container)
-        queue-name "test-queue"]
-    (core/create-queue adapter queue-name)
-    (testing "delete single message"
-      (let [msg-id (core/send-message adapter queue-name {:foo "bar"})]
-        (is (true? (core/delete-message adapter queue-name msg-id)))
-        (is (nil? (core/read-message adapter queue-name 1 1 {})))))
-    (testing "delete message that doesn't exist"
-      (is (false? (core/delete-message adapter queue-name 18728))))
-    (core/drop-queue adapter queue-name)))
+    (testing "delete-message should delete messages"
+      (core/create-queue adapter queue-name)
+      (testing "delete single message"
+        (let [msg-id (core/send-message adapter queue-name {:foo "bar"})]
+          (is (true? (core/delete-message adapter queue-name msg-id)))
+          (is (nil? (core/read-message adapter queue-name 1 1 {})))))
+      (testing "delete message that doesn't exist"
+        (is (false? (core/delete-message adapter queue-name 18728))))
+      (core/drop-queue adapter queue-name))))
 
 (deftest create-queue-name-spec-test
   (let [adapter (db/setup-adapter container)
@@ -247,5 +247,3 @@
       (is (thrown-with-msg? clojure.lang.ExceptionInfo
                             #"Call to com.thirstysink.pgmq-clj.core/delete-message did not conform to spec."
                             (core/delete-message adapter queue-name "not an int seq"))))))
-
-;; TODO: separate these with annotations of more like integration tests and unit tests
