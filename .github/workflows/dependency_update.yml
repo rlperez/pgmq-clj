@@ -1,0 +1,49 @@
+name: Dependency Updates
+
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+  schedule:
+    - cron: "30 19 * * 5"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Install tool dependencies
+        uses: jdx/mise-action@v2
+      - name: Update dependencies
+        run: |
+          bb upgrade
+      - name: Verify authentication
+        run: gh auth status
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create pull request if updates are present
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          #!/bin/bash
+          git config --global user.email "rlperez@kablamo.me"
+          git config --global user.name "Rigoberto L. Perez"
+          if git diff --quiet deps.edn; then
+              echo "No changes detected in deps.edn. Skipping pull request creation."
+              exit 0;
+          else
+              branch_with_date="dependency_update-$(date +%Y%m%d-%H%M%S)"
+              git checkout -b $branch_with_date
+              git add deps.edn
+              git commit -m "Update dependencies: $(date +%Y%m%d-%H%M%S)"
+              git push origin "$branch_with_date"
+              gh pr create -B master -H "$branch_with_date"\
+                --title "Merge dependency updates into master" \
+                --body "$(git diff deps.edn)"
+          fi
