@@ -16,8 +16,10 @@ jobs:
           - quay.io/tembo/pg16-pgmq
           - quay.io/tembo/pg17-pgmq
     steps:
-      - uses: actions/checkout@v4
-      - uses: jdx/mise-action@v2
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Install tool dependencies
+        uses: jdx/mise-action@v2
       - name: Run tests
         env:
           TEST_CONTAINER: ${{ matrix.testcontainer }}

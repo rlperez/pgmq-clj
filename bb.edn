@@ -32,7 +32,7 @@
 
          upgrade   {:doc "updates dependencies for project"
                     :task (do
-                            (clojure {:dir "."} "-M:outdated"))}
+                            (clojure {:dir "."} "-M:upgrade"))}
 
          format    {:doc  "Formats codebase"
                     :task (shell {:dir "src"} "cljfmt fix")}}}
