@@ -39,7 +39,7 @@ jobs:
               git add deps.edn
               git commit -m "Update dependencies: $(date +%Y%m%d-%H%M%S)"
               git push origin "$branch_with_date"
-              gh pr create -B master -H "$branch_with_date"\
+              gh pr create -B master -H "$branch_with_date" \
                 --title "chore: Merge dependency updates into master" \
                 --body "$(git diff deps.edn)"
           fi
