@@ -1,4 +1,4 @@
-name: dependency-updates
+name: Dependency Updates
 
 on:
   push:
@@ -9,16 +9,13 @@ on:
     - cron: "30 19 * * 5"
 
 permissions:
-  contents: read
+  contents: write
+  pull-requests: write
 
 jobs:
-  update-depenencies:
-    name: Run clj-watson scanning
+  build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      security-events: write
-      actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run statussteps:
+    steps:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Install tool dependencies
@@ -26,16 +23,27 @@ jobs:
       - name: Update dependencies
         run: |
           bb upgrade
+      - name: Verify authentication
+        run: gh auth status
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Create pull request if updates are present
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           #!/bin/bash
-          branch_with_date="dependency_update-$(date +%Y%m%d-%H%M%S)"
-          gh pr create -B master --title "Merge dependency updates into master" --body "$(git diff deps.edn)"
-      env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        # TODO: Need to make this action create a PR
-        # TODO: Investigate if I can make only this type of pr auto merge
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: ${{github.workspace}}/clj-watson-results.sarif
-          wait-for-processing: true
+          git config --global user.email "rlperez@kablamo.me"
+          git config --global user.name "Rigoberto L. Perez"
+          if git diff --quiet deps.edn; then
+              echo "No changes detected in deps.edn. Skipping pull request creation."
+              exit 0;
+          else
+              branch_with_date="dependency_update-$(date +%Y%m%d-%H%M%S)"
+              git checkout -b $branch_with_date
+              git add deps.edn
+              git commit -m "Update dependencies: $(date +%Y%m%d-%H%M%S)"
+              git push origin "$branch_with_date"
+              gh pr create -B master -H "$branch_with_date"\
+                --title "Merge dependency updates into master" \
+                --body "$(git diff deps.edn)"
+          fi
