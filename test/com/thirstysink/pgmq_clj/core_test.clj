@@ -11,16 +11,24 @@
 ;; TODO: separate these with annotations of more like integration tests and unit tests
 
 (defonce container (db/pgmq-container))
-
 (defrecord MockAdapter []
   adapter/Adapter
   (execute! [_ _ _] [{:delete true}])
-  (query [_ _ _] [{:msg_id 1
-                   :read_ct 1
-                   :enqueued_at (java.time.Instant/now)
-                   :vt (java.time.Instant/now)
-                   :message "{\"foo\": \"bar\"}"
-                   :headers nil}])
+  (query [_ sql _]
+    (cond
+      (re-find #"list" sql)
+      [{:queue_name "my-queue"
+        :is_partitioned false
+        :is_unlogged true
+        :created_at (java.time.Instant/now)}]
+
+      (re-find #"read" sql)
+      [{:msg_id 1
+        :read_ct 1
+        :enqueued_at (java.time.Instant/now)
+        :vt (java.time.Instant/now)
+        :message {:foo "bar"}
+        :headers nil}]))
   (with-transaction [_ f] (f))
   (close [_] nil))
 
@@ -266,7 +274,7 @@
 (deftest list-queues-spec-test
   (let [adapter (->MockAdapter)]
     (testing "list-queues spec validation with valid arguments"
-      (is (s/valid? boolean? (core/list-queues adapter))))
+      (is (s/valid? ::core/queue-result (core/list-queues adapter))))
     (testing "list-queues spec validation with invalid adapter"
       (is (thrown-with-msg? clojure.lang.ExceptionInfo
                             #"Call to com.thirstysink.pgmq-clj.core/list-queues did not conform to spec."
