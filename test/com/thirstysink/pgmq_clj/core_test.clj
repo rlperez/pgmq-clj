@@ -262,3 +262,12 @@
       (is (thrown-with-msg? clojure.lang.ExceptionInfo
                             #"Call to com.thirstysink.pgmq-clj.core/delete-message did not conform to spec."
                             (core/delete-message adapter queue-name "not an int seq"))))))
+
+(deftest list-queues-spec-test
+  (let [adapter (->MockAdapter)]
+    (testing "list-queues spec validation with valid arguments"
+      (is (s/valid? boolean? (core/list-queues adapter))))
+    (testing "list-queues spec validation with invalid adapter"
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Call to com.thirstysink.pgmq-clj.core/list-queues did not conform to spec."
+                            (core/list-queues nil))))))
