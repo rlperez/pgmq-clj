@@ -62,8 +62,8 @@
   :ret boolean?)
 
 (s/fdef list-queues
-  :args (s/cat :adapter ::adapter :queue-name ::queue-name)
-  :ret boolean?)
+  :args (s/cat :adapter ::adapter)
+  :ret seq?)
 
 (s/fdef send-message
   :args (s/cat :adapter ::adapter
