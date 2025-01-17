@@ -39,11 +39,26 @@
         queue-name "test-queue"]
     (testing "create-queue and drop-queue should add and remove queues"
 
-      (core/create-queue adapter queue-name)
-      ;; TODO: This is where I will test list
-      (let [result (adapter/query adapter "SELECT * FROM pgmq.list_queues() WHERE queue_name = ?;" [queue-name])]
-        (is (= 1 (count result)))
-        (is (= queue-name (:queue_name (first result))))))
+      (let [queue-name-1 "test_queue_1"
+            queue-name-2 "test_queue_2"]
+
+        (core/create-queue adapter queue-name-1)
+        (let [result (core/list-queues adapter)]
+          (is (= 1 (count result)))
+          (is (= queue-name-1 (:queue_name (first result)))))
+
+        (core/create-queue adapter queue-name-2)
+
+        (let [result (core/list-queues adapter)]
+          (is (= 2 (count result)))
+          (is (some #(= queue-name-2 (:queue_name %)) result)))
+
+        (core/drop-queue adapter queue-name-1)
+
+        (let [result (core/list-queues adapter)]
+          (is (= 1 (count result)))
+          (is (some #(= queue-name-2 (:queue_name %)) result))
+          (is (not (some #(= queue-name-1 (:queue_name %)) result))))))
 
     (testing "send-message should send and return an id"
       (core/create-queue adapter queue-name)
