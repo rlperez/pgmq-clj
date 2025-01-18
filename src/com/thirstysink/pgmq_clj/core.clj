@@ -3,7 +3,8 @@
             [cheshire.core :as ches]
             [com.thirstysink.pgmq-clj.db.adapter :as adapter]
             [com.thirstysink.pgmq-clj.instrumentation :as inst])
-  (:import (java.time.format DateTimeFormatter)))
+  (:import [java.time.format DateTimeFormatter]
+           java.time.Instant))
 
 (s/def ::adapter #(satisfies? adapter/Adapter %))
 
@@ -27,7 +28,7 @@
                           (.parse DateTimeFormatter/ISO_DATE_TIME %)
                           true
                           (catch Exception _ false)))
-        :instant #(instance? java.time.Instant %)))
+        :instant #(instance? Instant %)))
 
 (s/def ::msg-id (s/and number? pos?))
 
@@ -39,19 +40,29 @@
 (s/def ::enqueued-at ::timestamp)
 
 (s/def ::vt ::timestamp)
-;; TODO: Is this a string column in the table?
-(s/def ::message string?)
+
+(s/def ::message ::json)
+
+(s/def ::headers ::json)
 
 (s/def ::is-partitioned boolean?)
 
 (s/def ::is-unlogged boolean?)
 
-(s/def ::created-at inst?)
+(s/def ::created-at #(instance? java.time.Instant %))
 
-(s/def ::table-row
-  (s/keys :req-un [::msg-id ::read-ct ::enqueued-at ::vt ::message]))
+(s/def ::queue-record
+  (s/keys :req-un [::queue-name
+                   ::is-partitioned
+                   ::is-unlogged
+                   ::created-at]))
 
-(s/def ::table-result (s/coll-of ::table-row))
+(s/def ::queue-result (s/coll-of ::queue-record))
+
+(s/def ::message-record
+  (s/keys :req-un [::msg-id ::read-ct ::enqueued-at ::vt ::message ::headers]))
+
+(s/def ::message-result (s/coll-of ::message-record))
 
 (s/fdef create-queue
   :args (s/cat :adapter ::adapter :queue-name ::queue-name)
@@ -63,7 +74,7 @@
 
 (s/fdef list-queues
   :args (s/cat :adapter ::adapter)
-  :ret seq?)
+  :ret ::queue-result)
 
 (s/fdef send-message
   :args (s/cat :adapter ::adapter
@@ -77,7 +88,7 @@
                :visibility_time ::visibility_time
                :quantity ::quantity
                :filter ::json)
-  :ret ::table-result)
+  :ret ::message-result)
 
 (s/fdef delete-message
   :args (s/cat :adapter ::adapter
@@ -126,10 +137,7 @@
 ;; TODO:
 ;; delete-batch
 ;; send-batch
-;; list-queues
-;; metrics
-;; metrics-all
-;; create-partitioned
+; create-partitioned
 ;; read-with-polling
 
 (if inst/instrumentation-enabled?
