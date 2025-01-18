@@ -49,7 +49,7 @@
 
 (s/def ::is-unlogged boolean?)
 
-(s/def ::created-at #(instance? java.time.Instant %))
+(s/def ::created-at (fn [x] #(instance? java.time.Instant x)))
 
 (s/def ::queue-record
   (s/keys :req-un [::queue-name
