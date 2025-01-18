@@ -90,7 +90,7 @@
         (let [result-filter (core/read-message adapter queue-name visibility-time quantity {:foo "bar"})]
           (is (seq result-filter))
           (is (= 1 (count result-filter)))
-          (is (= (get-in (first result-filter) [:msg_id]) 1)))
+          (is (= (get-in (first result-filter) [:msg-id]) 1)))
         ;; Reading for foo bar again should be empty due to visibility rules
         (let [result-bar-before (core/read-message adapter queue-name visibility-time quantity {:foo "bar"})]
           (is (empty? result-bar-before)))
@@ -98,7 +98,7 @@
         (let [result-baz-before (core/read-message adapter queue-name visibility-time quantity {})]
           (is (seq result-baz-before))
           (is (= 1 (count result-baz-before)))
-          (is (= (get-in (first result-baz-before) [:msg_id]) 2)))
+          (is (= (get-in (first result-baz-before) [:msg-id]) 2)))
         (Thread/sleep 1500)
         ;; After sleeping past the visibility time we should have both foos, bar and baz
         (let [result-after (core/read-message adapter queue-name visibility-time quantity {})]
