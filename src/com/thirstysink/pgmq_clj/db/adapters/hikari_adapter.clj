@@ -15,7 +15,8 @@
        (:datasource this)
        (if (seq params)
          (into [sql] params)
-         [sql]))
+         [sql])
+       {:builder-fn rs/as-unqualified-kebab-maps})
       (catch Exception e
         (throw (ex-info "Error executing statement"
                         {:type :execute-error
@@ -57,9 +58,6 @@
         (throw (ex-info "Failed to close the datasource"
                         {:type ::close-error}
                         e))))))
-
-(defn as-kebab-maps [rs opts]
-  (let [kebab #(str/replace % #"_" "-")]))
 
 (defn ensure-pgmq-extension [adapter]
   (let [check-extension-sql "SELECT extname FROM pg_extension WHERE extname = 'pgmq';"
