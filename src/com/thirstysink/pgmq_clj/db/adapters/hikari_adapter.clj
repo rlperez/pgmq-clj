@@ -1,5 +1,6 @@
 (ns com.thirstysink.pgmq-clj.db.adapters.hikari-adapter
-  (:require [next.jdbc :as jdbc]
+  (:require [clojure.string :as str]
+            [next.jdbc :as jdbc]
             [next.jdbc.result-set :as rs]
             [com.thirstysink.pgmq-clj.db.adapter :as adapter])
   (:import [com.zaxxer.hikari HikariDataSource]))
@@ -30,7 +31,7 @@
        (if (seq params)
          (into [sql] params)
          [sql])
-       {:builder-fn rs/as-unqualified-lower-maps})
+       {:builder-fn rs/as-unqualified-kebab-maps})
       (catch Exception e
         (throw (ex-info "Error executing query"
                         {:type :query-error
@@ -56,6 +57,9 @@
         (throw (ex-info "Failed to close the datasource"
                         {:type ::close-error}
                         e))))))
+
+(defn as-kebab-maps [rs opts]
+  (let [kebab #(str/replace % #"_" "-")]))
 
 (defn ensure-pgmq-extension [adapter]
   (let [check-extension-sql "SELECT extname FROM pg_extension WHERE extname = 'pgmq';"
