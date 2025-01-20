@@ -17,15 +17,15 @@
   (query [_ sql _]
     (cond
       (re-find #"list" sql)
-      [{:queue_name "my-queue"
-        :is_partitioned false
-        :is_unlogged true
-        :created_at (java.time.Instant/now)}]
+      [{:queue-name "my-queue"
+        :is-partitioned false
+        :is-unlogged true
+        :created-at (java.time.Instant/now)}]
 
       (re-find #"read" sql)
-      [{:msg_id 1
-        :read_ct 1
-        :enqueued_at (java.time.Instant/now)
+      [{:msg-id 1
+        :read-ct 1
+        :enqueued-at (java.time.Instant/now)
         :vt (java.time.Instant/now)
         :message {:foo "bar"}
         :headers nil}]))
@@ -281,6 +281,8 @@
 (deftest list-queues-spec-test
   (let [adapter (->MockAdapter)]
     (testing "list-queues spec validation with valid arguments"
+      (core/create-queue adapter "queue-name-1")
+
       (is (s/valid? ::core/queue-result (core/list-queues adapter))))
     (testing "list-queues spec validation with invalid adapter"
       (is (thrown-with-msg? clojure.lang.ExceptionInfo
