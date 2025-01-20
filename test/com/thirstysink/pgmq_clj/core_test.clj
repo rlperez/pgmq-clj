@@ -49,24 +49,31 @@
 
       (let [queue-name-1 "test_queue_1"
             queue-name-2 "test_queue_2"]
+        (let [queues (core/list-queues adapter)]
+          (is (= 0 (count queues))))
 
         (core/create-queue adapter queue-name-1)
-        (let [result (core/list-queues adapter)]
-          (is (= 1 (count result)))
-          (is (= queue-name-1 (:queue_name (first result)))))
+        (let [queues (core/list-queues adapter)]
+          (is (= 1 (count queues)))
+          (is (= queue-name-1 (:queue-name (first queues)))))
 
         (core/create-queue adapter queue-name-2)
+        (let [queues (core/list-queues adapter)]
+          (is (= 2 (count queues)))
+          (is (some #(= queue-name-2 (:queue-name %)) queues)))
 
-        (let [result (core/list-queues adapter)]
-          (is (= 2 (count result)))
-          (is (some #(= queue-name-2 (:queue_name %)) result)))
+        (let [drop-queue-1-result (core/drop-queue adapter queue-name-1)
+              queues (core/list-queues adapter)]
+          (is (= drop-queue-1-result true))
+          (is (= 1 (count queues)))
+          (is (some #(= queue-name-2 (:queue-name %)) queues))
+          (is (not (some #(= queue-name-1 (:queue-name %)) queues)))
+          (is (= 1 (count queues))))
 
-        (core/drop-queue adapter queue-name-1)
-
-        (let [result (core/list-queues adapter)]
-          (is (= 1 (count result)))
-          (is (some #(= queue-name-2 (:queue_name %)) result))
-          (is (not (some #(= queue-name-1 (:queue_name %)) result))))))
+        (let [drop-queue-result (core/drop-queue adapter queue-name-2)
+              queues (core/list-queues adapter)]
+          (is (= drop-queue-result true))
+          (is (= 0 (count queues))))))
 
     (testing "send-message should send and return an id"
       (core/create-queue adapter queue-name)
