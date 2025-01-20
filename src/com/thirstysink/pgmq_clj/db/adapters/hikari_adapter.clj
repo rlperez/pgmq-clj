@@ -1,6 +1,5 @@
 (ns com.thirstysink.pgmq-clj.db.adapters.hikari-adapter
-  (:require [clojure.string :as str]
-            [next.jdbc :as jdbc]
+  (:require [next.jdbc :as jdbc]
             [next.jdbc.result-set :as rs]
             [com.thirstysink.pgmq-clj.db.adapter :as adapter])
   (:import [com.zaxxer.hikari HikariDataSource]))

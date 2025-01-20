@@ -103,11 +103,12 @@
 (defn drop-queue [adapter queue-name]
   (let [drop-sql "SELECT pgmq.drop_queue(?);"
         result (adapter/query adapter drop-sql [queue-name])]
-    (get-in (first result) [:drop_queue])))
+    (:drop-queue (first result))))
 
 (defn list-queues [adapter]
-  (let [list-queues-sql "SELECT * FROM pgmq.list_queues();"]
-    (adapter/query adapter list-queues-sql [])))
+  (let [list-queues-sql "SELECT * FROM pgmq.list_queues();"
+        result (adapter/query adapter list-queues-sql [])]
+    result))
 
 ;; TODO: I need to add at a minimum delay
 ;; TODO: Add headers as an optional field.
