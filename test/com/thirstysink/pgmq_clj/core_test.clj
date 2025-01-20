@@ -1,23 +1,34 @@
 (ns com.thirstysink.pgmq-clj.core-test
-  (:require [clojure.test :refer [deftest is use-fixtures testing]]
-            [clojure.spec.alpha :as s]
-            [com.thirstysink.pgmq-clj.core :as core]
-            [com.thirstysink.pgmq-clj.db.adapter :as adapter]
-            [com.thirstysink.pgmq-clj.instrumentation :as inst]
-            [com.thirstysink.util.db :as db]
-            [clojure.core :as c]))
+  (:require
+   [clojure.core :as c]
+   [clojure.spec.alpha :as s]
+   [clojure.test :refer [deftest is testing use-fixtures]]
+   [com.thirstysink.pgmq-clj.core :as core]
+   [com.thirstysink.pgmq-clj.db.adapter :as adapter]
+   [com.thirstysink.pgmq-clj.instrumentation :as inst]
+   [com.thirstysink.util.db :as db]))
+
+;; TODO: separate these with annotations of more like integration tests and unit tests
 
 (defonce container (db/pgmq-container))
-
 (defrecord MockAdapter []
   adapter/Adapter
   (execute! [_ _ _] [{:delete true}])
-  (query [_ _ _] [{:msg_id 1
-                   :read_ct 1
-                   :enqueued_at (java.time.Instant/now)
-                   :vt (java.time.Instant/now)
-                   :message "{\"foo\": \"bar\"}"
-                   :headers nil}])
+  (query [_ sql _]
+    (cond
+      (re-find #"list" sql)
+      [{:queue-name "my-queue"
+        :is-partitioned false
+        :is-unlogged true
+        :created-at (java.time.Instant/now)}]
+
+      (re-find #"read" sql)
+      [{:msg-id 1
+        :read-ct 1
+        :enqueued-at (java.time.Instant/now)
+        :vt (java.time.Instant/now)
+        :message {:foo "bar"}
+        :headers nil}]))
   (with-transaction [_ f] (f))
   (close [_] nil))
 
@@ -31,25 +42,46 @@
         (inst/disable-instrumentation)
         (db/stop-postgres-container container)))))
 
-(deftest create-and-drop-queue-test
-  (let [adapter (db/setup-adapter container)
-        queue-name "test_queue"]
-
-    (core/create-queue adapter queue-name)
-
-    (let [result (adapter/query adapter "SELECT * FROM pgmq.list_queues() WHERE queue_name = ?;" [queue-name])]
-      (is (= 1 (count result)))
-      (is (= queue-name (:queue_name (first result)))))))
-
-(deftest read-message-visibility-time-test
+(deftest integration-tests
   (let [adapter (db/setup-adapter container)
         queue-name "test-queue"]
-    (testing "send-message function"
+    (testing "create-queue and drop-queue should add and remove queues"
+
+      (let [queue-name-1 "test_queue_1"
+            queue-name-2 "test_queue_2"]
+        (let [queues (core/list-queues adapter)]
+          (is (= 0 (count queues))))
+
+        (core/create-queue adapter queue-name-1)
+        (let [queues (core/list-queues adapter)]
+          (is (= 1 (count queues)))
+          (is (= queue-name-1 (:queue-name (first queues)))))
+
+        (core/create-queue adapter queue-name-2)
+        (let [queues (core/list-queues adapter)]
+          (is (= 2 (count queues)))
+          (is (some #(= queue-name-2 (:queue-name %)) queues)))
+
+        (let [drop-queue-1-result (core/drop-queue adapter queue-name-1)
+              queues (core/list-queues adapter)]
+          (is (= drop-queue-1-result true))
+          (is (= 1 (count queues)))
+          (is (some #(= queue-name-2 (:queue-name %)) queues))
+          (is (not (some #(= queue-name-1 (:queue-name %)) queues)))
+          (is (= 1 (count queues))))
+
+        (let [drop-queue-result (core/drop-queue adapter queue-name-2)
+              queues (core/list-queues adapter)]
+          (is (= drop-queue-result true))
+          (is (= 0 (count queues))))))
+
+    (testing "send-message should send and return an id"
       (core/create-queue adapter queue-name)
       (let [payload {:foo "bar"}
             result (core/send-message adapter queue-name payload)]
         (is (some? result))
-        (is (number? result)))
+        (is (number? result))
+        (is (= result 1)))
       (core/drop-queue adapter queue-name))
 
     (testing "read-message should respect visibility time"
@@ -65,7 +97,7 @@
         (let [result-filter (core/read-message adapter queue-name visibility-time quantity {:foo "bar"})]
           (is (seq result-filter))
           (is (= 1 (count result-filter)))
-          (is (= (get-in (first result-filter) [:msg_id]) 1)))
+          (is (= (get-in (first result-filter) [:msg-id]) 1)))
         ;; Reading for foo bar again should be empty due to visibility rules
         (let [result-bar-before (core/read-message adapter queue-name visibility-time quantity {:foo "bar"})]
           (is (empty? result-bar-before)))
@@ -73,24 +105,22 @@
         (let [result-baz-before (core/read-message adapter queue-name visibility-time quantity {})]
           (is (seq result-baz-before))
           (is (= 1 (count result-baz-before)))
-          (is (= (get-in (first result-baz-before) [:msg_id]) 2)))
+          (is (= (get-in (first result-baz-before) [:msg-id]) 2)))
         (Thread/sleep 1500)
         ;; After sleeping past the visibility time we should have both foos, bar and baz
         (let [result-after (core/read-message adapter queue-name visibility-time quantity {})]
           (is (= 2 (count result-after)))))
-      (core/drop-queue adapter queue-name))))
+      (core/drop-queue adapter queue-name))
 
-(deftest delete-message-test
-  (let [adapter (db/setup-adapter container)
-        queue-name "test-queue"]
-    (core/create-queue adapter queue-name)
-    (testing "delete single message"
-      (let [msg-id (core/send-message adapter queue-name {:foo "bar"})]
-        (is (true? (core/delete-message adapter queue-name msg-id)))
-        (is (nil? (core/read-message adapter queue-name 1 1 {})))))
-    (testing "delete message that doesn't exist"
-      (is (false? (core/delete-message adapter queue-name 18728))))
-    (core/drop-queue adapter queue-name)))
+    (testing "delete-message should delete messages"
+      (core/create-queue adapter queue-name)
+      (testing "delete single message"
+        (let [msg-id (core/send-message adapter queue-name {:foo "bar"})]
+          (is (true? (core/delete-message adapter queue-name msg-id)))
+          (is (nil? (core/read-message adapter queue-name 1 1 {})))))
+      (testing "delete message that doesn't exist"
+        (is (false? (core/delete-message adapter queue-name 18728))))
+      (core/drop-queue adapter queue-name))))
 
 (deftest create-queue-name-spec-test
   (let [adapter (db/setup-adapter container)
@@ -189,11 +219,7 @@
                             (core/read-message adapter queue-name 30 "invalid" {})))
       (is (thrown-with-msg? clojure.lang.ExceptionInfo
                             #"Call to com.thirstysink.pgmq-clj.core/read-message did not conform to spec"
-                            (core/read-message adapter queue-name 30 nil {}))))
-    (testing "read-message spec validates invalid invalid filter"
-      (is (thrown-with-msg? clojure.lang.ExceptionInfo
-                            #"Call to com.thirstysink.pgmq-clj.core/read-message did not conform to spec"
-                            (core/read-message adapter queue-name 30 3 nil))))))
+                            (core/read-message adapter queue-name 30 nil {}))))))
 
 (deftest send-message-spec-test
   (let [adapter (db/setup-adapter container)
@@ -252,4 +278,13 @@
                             #"Call to com.thirstysink.pgmq-clj.core/delete-message did not conform to spec."
                             (core/delete-message adapter queue-name "not an int seq"))))))
 
-;; TODO: separate these with annotations of more like integration tests and unit tests
+(deftest list-queues-spec-test
+  (let [adapter (->MockAdapter)]
+    (testing "list-queues spec validation with valid arguments"
+      (core/create-queue adapter "queue-name-1")
+
+      (is (s/valid? ::core/queue-result (core/list-queues adapter))))
+    (testing "list-queues spec validation with invalid adapter"
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Call to com.thirstysink.pgmq-clj.core/list-queues did not conform to spec."
+                            (core/list-queues nil))))))

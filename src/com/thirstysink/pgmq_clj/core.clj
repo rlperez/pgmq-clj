@@ -3,7 +3,8 @@
             [cheshire.core :as ches]
             [com.thirstysink.pgmq-clj.db.adapter :as adapter]
             [com.thirstysink.pgmq-clj.instrumentation :as inst])
-  (:import (java.time.format DateTimeFormatter)))
+  (:import [java.time.format DateTimeFormatter]
+           java.time.Instant))
 
 (s/def ::adapter #(satisfies? adapter/Adapter %))
 
@@ -18,7 +19,8 @@
         :vector vector?
         :string string?
         :number number?
-        :boolean boolean?))
+        :boolean boolean?
+        :nil? nil?))
 
 (s/def ::timestamp
   (s/or :string (s/and string?
@@ -26,7 +28,7 @@
                           (.parse DateTimeFormatter/ISO_DATE_TIME %)
                           true
                           (catch Exception _ false)))
-        :instant #(instance? java.time.Instant %)))
+        :instant #(instance? Instant %)))
 
 (s/def ::msg-id (s/and number? pos?))
 
@@ -39,12 +41,28 @@
 
 (s/def ::vt ::timestamp)
 
-(s/def ::message string?)
+(s/def ::message ::json)
 
-(s/def ::table-row
-  (s/keys :req-un [::msg-id ::read-ct ::enqueued-at ::vt ::message]))
+(s/def ::headers ::json)
 
-(s/def ::table-result (s/coll-of ::table-row))
+(s/def ::is-partitioned boolean?)
+
+(s/def ::is-unlogged boolean?)
+
+(s/def ::created-at (fn [x] #(instance? java.time.Instant x)))
+
+(s/def ::queue-record
+  (s/keys :req-un [::queue-name
+                   ::is-partitioned
+                   ::is-unlogged
+                   ::created-at]))
+
+(s/def ::queue-result (s/coll-of ::queue-record))
+
+(s/def ::message-record
+  (s/keys :req-un [::msg-id ::read-ct ::enqueued-at ::vt ::message ::headers]))
+
+(s/def ::message-result (s/coll-of ::message-record))
 
 (s/fdef create-queue
   :args (s/cat :adapter ::adapter :queue-name ::queue-name)
@@ -53,6 +71,10 @@
 (s/fdef drop-queue
   :args (s/cat :adapter ::adapter :queue-name ::queue-name)
   :ret boolean?)
+
+(s/fdef list-queues
+  :args (s/cat :adapter ::adapter)
+  :ret ::queue-result)
 
 (s/fdef send-message
   :args (s/cat :adapter ::adapter
@@ -66,7 +88,7 @@
                :visibility_time ::visibility_time
                :quantity ::quantity
                :filter ::json)
-  :ret ::table-result)
+  :ret ::message-result)
 
 (s/fdef delete-message
   :args (s/cat :adapter ::adapter
@@ -81,8 +103,15 @@
 (defn drop-queue [adapter queue-name]
   (let [drop-sql "SELECT pgmq.drop_queue(?);"
         result (adapter/query adapter drop-sql [queue-name])]
-    (get-in (first result) [:drop_queue])))
+    (:drop-queue (first result))))
 
+(defn list-queues [adapter]
+  (let [list-queues-sql "SELECT * FROM pgmq.list_queues();"
+        result (adapter/query adapter list-queues-sql [])]
+    result))
+
+;; TODO: I need to add at a minimum delay
+;; TODO: Add headers as an optional field.
 (defn send-message [adapter queue-name payload]
   (let [json-payload (ches/generate-string payload)
         send-sql "SELECT * from pgmq.send(?,?::jsonb);"
@@ -90,7 +119,9 @@
     (get-in (first result) [:send])))
 
 (defn read-message [adapter queue-name visible_time quantity filter]
-  (let [json-filter (ches/generate-string filter)
+  (let [json-filter (if (nil? filter)
+                      "{}"
+                      (ches/generate-string filter))
         read-sql "SELECT * FROM pgmq.read(?,?::integer,?::integer,?::jsonb);"
         result (adapter/query adapter read-sql [queue-name visible_time quantity json-filter])]
     (seq result)))
@@ -100,16 +131,14 @@
         result (adapter/execute! adapter delete-sql [queue-name msg-id])]
     (get-in (first result) [:delete])))
 
-;; (defn pop-message [adapter queue-name] nil)
+;; TODO: (defn pop-message [adapter queue-name] nil)
 
-;; (defn archive-message [adapter queue-name msg-id] nil)
+;; TODO: (defn archive-message [adapter queue-name msg-id] nil)
 
+;; TODO:
 ;; delete-batch
 ;; send-batch
-;; list-queues
-;; metrics
-;; metrics-all
-;; create-partitioned
+; create-partitioned
 ;; read-with-polling
 
 (if inst/instrumentation-enabled?

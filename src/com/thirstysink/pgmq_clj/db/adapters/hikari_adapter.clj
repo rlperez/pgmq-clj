@@ -14,7 +14,8 @@
        (:datasource this)
        (if (seq params)
          (into [sql] params)
-         [sql]))
+         [sql])
+       {:builder-fn rs/as-unqualified-kebab-maps})
       (catch Exception e
         (throw (ex-info "Error executing statement"
                         {:type :execute-error
@@ -30,7 +31,7 @@
        (if (seq params)
          (into [sql] params)
          [sql])
-       {:builder-fn rs/as-unqualified-lower-maps})
+       {:builder-fn rs/as-unqualified-kebab-maps})
       (catch Exception e
         (throw (ex-info "Error executing query"
                         {:type :query-error
