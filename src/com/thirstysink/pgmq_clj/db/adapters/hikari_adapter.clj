@@ -10,7 +10,7 @@
   ;; Execute a query (e.g., UPDATE, INSERT, DELETE) with optional parameters
   (execute! [this sql params]
     (try
-      (jdbc/execute!
+      (jdbc/execute-one!
        (:datasource this)
        (if (seq params)
          (into [sql] params)
