@@ -103,8 +103,8 @@
 
 (defn drop-queue [adapter queue-name]
   (let [drop-sql "SELECT pgmq.drop_queue(?);"
-        result (adapter/query adapter drop-sql [queue-name])]
-    (:drop-queue (first result))))
+        result (adapter/execute! adapter drop-sql [queue-name])]
+    (:drop-queue result)))
 
 (defn list-queues [adapter]
   (let [list-queues-sql "SELECT * FROM pgmq.list_queues();"
@@ -112,13 +112,12 @@
     result))
 
 ;; TODO: I need to add at a minimum delay
-;; TODO: Add headers as an optional field.
 (defn send-message [adapter queue-name payload headers]
   (let [json-payload (ches/generate-string payload)
         json-headers (ches/generate-string headers)
         send-sql "SELECT * from pgmq.send(?,?::jsonb,?::jsonb);"
-        result (adapter/query adapter send-sql [queue-name json-payload json-headers])]
-    (get-in (first result) [:send])))
+        result (adapter/execute! adapter send-sql [queue-name json-payload json-headers])]
+    (:send result)))
 
 (defn read-message [adapter queue-name visible_time quantity filter]
   (let [json-filter (if (nil? filter)
@@ -131,7 +130,7 @@
 (defn delete-message [adapter queue-name msg-id]
   (let [delete-sql "SELECT pgmq.delete(?,?);"
         result (adapter/execute! adapter delete-sql [queue-name msg-id])]
-    (get-in (first result) [:delete])))
+    (:delete result)))
 
 ;; TODO: (defn pop-message [adapter queue-name] nil)
 

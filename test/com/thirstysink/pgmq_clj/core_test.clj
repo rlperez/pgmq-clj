@@ -13,7 +13,11 @@
 (defonce container (db/pgmq-container))
 (defrecord MockAdapter []
   adapter/Adapter
-  (execute! [_ _ _] [{:delete true}])
+  (execute! [_ sql _]
+    (cond (re-find #"delete" sql)
+          {:delete true}
+          (re-find #"send" sql)
+          {:send 1}))
   (query [_ sql _]
     (cond
       (re-find #"list" sql)
@@ -101,7 +105,6 @@
               first-result (first result-filtered)]
           (is (seq result-filtered))
           (is (= 1 (count result-filtered)))
-          (println (.getValue (get-in first-result [:headers])))
           (is (= {:x-my-data "yup"} (get-in first-result [:headers])))
           (is (= 1 (get-in first-result [:msg-id]))))
         ;; Reading for foo bar again should be empty due to visibility rules
