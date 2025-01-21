@@ -79,7 +79,8 @@
 (s/fdef send-message
   :args (s/cat :adapter ::adapter
                :queue-name ::queue-name
-               :payload ::json)
+               :payload ::json
+               :headers ::json)
   :ret int?)
 
 (s/fdef read-message
@@ -112,10 +113,11 @@
 
 ;; TODO: I need to add at a minimum delay
 ;; TODO: Add headers as an optional field.
-(defn send-message [adapter queue-name payload]
+(defn send-message [adapter queue-name payload headers]
   (let [json-payload (ches/generate-string payload)
-        send-sql "SELECT * from pgmq.send(?,?::jsonb);"
-        result (adapter/query adapter send-sql [queue-name json-payload])]
+        json-headers (ches/generate-string headers)
+        send-sql "SELECT * from pgmq.send(?,?::jsonb,?::jsonb);"
+        result (adapter/query adapter send-sql [queue-name json-payload json-headers])]
     (get-in (first result) [:send])))
 
 (defn read-message [adapter queue-name visible_time quantity filter]
