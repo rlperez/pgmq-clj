@@ -84,7 +84,7 @@
       (core/create-queue adapter queue-name)
       (let [payload {:foo "bar"}
             headers {:x-my-data "yup"}
-            result (core/send-message adapter queue-name payload headers)]
+            result (core/send-message adapter queue-name payload headers 0)]
         (is (some? result))
         (is (number? result))
         (is (= result 1)))
@@ -97,10 +97,10 @@
         ;; Send two messages to a fresh queue
         (let [payload {:foo "bar"}
               headers {:x-my-data "yup"}]
-          (core/send-message adapter queue-name payload headers))
+          (core/send-message adapter queue-name payload headers 0))
         (let [payload {:foo "baz"}
               headers {:x-my-data "no"}]
-          (core/send-message adapter queue-name payload headers))
+          (core/send-message adapter queue-name payload headers 0))
         ;; Filtering on a message with a foo set to bar we should only get one.
         (let [result-filtered (core/read-message adapter queue-name visibility-time quantity {:foo "bar"})
               first-result (first result-filtered)]
@@ -125,7 +125,7 @@
     (testing "delete-message should delete messages"
       (core/create-queue adapter queue-name)
       (testing "delete single message"
-        (let [msg-id (core/send-message adapter queue-name {:foo "bar"} {:baz "bat"})]
+        (let [msg-id (core/send-message adapter queue-name {:foo "bar"} {:baz "bat"} 1)]
           (is (true? (core/delete-message adapter queue-name msg-id)))
           (is (nil? (core/read-message adapter queue-name 1 1 {})))))
       (testing "delete message that doesn't exist"
@@ -236,33 +236,37 @@
         queue-name "test-queue"]
     (core/create-queue adapter queue-name)
     (testing "send-message spec validation valid arguments"
-      (is (s/valid? ::core/msg-id (core/send-message adapter queue-name {:foo "bar"} {:baz "bat"})))
-      (is (s/valid? ::core/msg-id (core/send-message adapter queue-name {} {})))
-      (is (s/valid? ::core/msg-id (core/send-message adapter queue-name [] [])))
-      (is (s/valid? ::core/msg-id (core/send-message adapter queue-name 1 2)))
-      (is (s/valid? ::core/msg-id (core/send-message adapter queue-name "some string" "some other string"))))
+      (is (s/valid? ::core/msg-id (core/send-message adapter queue-name {:foo "bar"} {:baz "bat"} 0)))
+      (is (s/valid? ::core/msg-id (core/send-message adapter queue-name {} {} 0)))
+      (is (s/valid? ::core/msg-id (core/send-message adapter queue-name [] [] 0)))
+      (is (s/valid? ::core/msg-id (core/send-message adapter queue-name 1 2 0)))
+      (is (s/valid? ::core/msg-id (core/send-message adapter queue-name "some string" "some other string" 0))))
     (testing "send-message spec validation invalid adapter"
       (is (thrown-with-msg? clojure.lang.ExceptionInfo
                             #"Call to com.thirstysink.pgmq-clj.core/send-message did not conform to spec."
-                            (core/send-message nil queue-name {:foo "bar"} {})))
+                            (core/send-message nil queue-name {:foo "bar"} {} 0)))
       (is (thrown-with-msg? clojure.lang.ExceptionInfo
                             #"Call to com.thirstysink.pgmq-clj.core/send-message did not conform to spec."
-                            (core/send-message {} queue-name {:foo "bar"} {}))))
+                            (core/send-message {} queue-name {:foo "bar"} {} 0))))
     (testing "send-message spec validation invalid queue-name"
       (is (thrown-with-msg? clojure.lang.ExceptionInfo
                             #"Call to com.thirstysink.pgmq-clj.core/send-message did not conform to spec."
-                            (core/send-message adapter 8008 {} {})))
+                            (core/send-message adapter 8008 {} {} 0)))
       (is (thrown-with-msg? clojure.lang.ExceptionInfo
                             #"Call to com.thirstysink.pgmq-clj.core/send-message did not conform to spec."
-                            (core/send-message adapter nil {} {}))))
+                            (core/send-message adapter nil {} {} 0))))
     (testing "send-message spec validation invalid payload"
       (is (thrown-with-msg? clojure.lang.ExceptionInfo
                             #"Call to com.thirstysink.pgmq-clj.core/send-message did not conform to spec."
-                            (core/send-message adapter 8008 nil {}))))
+                            (core/send-message adapter 8008 nil {} 0))))
     (testing "send-message spec validation invalid headers"
       (is (thrown-with-msg? clojure.lang.ExceptionInfo
                             #"Call to com.thirstysink.pgmq-clj.core/send-message did not conform to spec."
-                            (core/send-message adapter 8008 {} nil))))
+                            (core/send-message adapter 8008 {} nil 0))))
+    (testing "send-message spec validation invalid delay"
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Call to com.thirstysink.pgmq-clj.core/send-message did not conform to spec."
+                            (core/send-message adapter 8008 {} {} "Not an int"))))
 
     (core/drop-queue adapter queue-name)))
 

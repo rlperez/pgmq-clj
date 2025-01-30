@@ -37,6 +37,8 @@
 
 (s/def ::read-ct int?)
 
+(s/def ::delay int?)
+
 (s/def ::enqueued-at ::timestamp)
 
 (s/def ::vt ::timestamp)
@@ -80,7 +82,8 @@
   :args (s/cat :adapter ::adapter
                :queue-name ::queue-name
                :payload ::json
-               :headers ::json)
+               :headers ::json
+               :delay ::delay)
   :ret int?)
 
 (s/fdef read-message
@@ -111,12 +114,11 @@
         result (adapter/query adapter list-queues-sql [])]
     result))
 
-;; TODO: I need to add at a minimum delay
-(defn send-message [adapter queue-name payload headers]
+(defn send-message [adapter queue-name payload headers delay]
   (let [json-payload (ches/generate-string payload)
         json-headers (ches/generate-string headers)
-        send-sql "SELECT * from pgmq.send(?,?::jsonb,?::jsonb);"
-        result (adapter/execute! adapter send-sql [queue-name json-payload json-headers])]
+        send-sql "SELECT * from pgmq.send(?,?::jsonb,?::jsonb, ?::integer);"
+        result (adapter/execute! adapter send-sql [queue-name json-payload json-headers delay])]
     (:send result)))
 
 (defn read-message [adapter queue-name visible_time quantity filter]
