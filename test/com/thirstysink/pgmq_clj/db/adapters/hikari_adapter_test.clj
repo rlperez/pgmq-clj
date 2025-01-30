@@ -2,9 +2,11 @@
   (:require [next.jdbc :as jdbc]
             [clojure.test :refer [deftest is testing use-fixtures]]
             [com.thirstysink.pgmq-clj.db.adapter :as adapter]
-            [com.thirstysink.pgmq-clj.db.adapters.hikari-adapter :refer [->HikariAdapter ensure-pgmq-extension]]
+            [cheshire.core :as ches]
+            [com.thirstysink.pgmq-clj.db.adapters.hikari-adapter :refer [->HikariAdapter ensure-pgmq-extension ->pgobject]]
             [com.thirstysink.util.db :as db])
-  (:import [com.zaxxer.hikari HikariDataSource]))
+  (:import [com.zaxxer.hikari HikariDataSource]
+           [org.postgresql.util PGobject]))
 
 (defonce container (db/pgmq-container))
 
@@ -98,3 +100,18 @@
                          (query [_ _ _] []))]
       (is (thrown? clojure.lang.ExceptionInfo
                    (ensure-pgmq-extension mock-adapter))))))
+
+(deftest test->pgobject
+  (testing "Converts Clojure data to a PGobject"
+    (let [data {:foo "bar" :baz 42}
+          pgobj (->pgobject data)]
+      (is (instance? PGobject pgobj))
+      (is (= "jsonb" (.getType pgobj)))
+      (is (= (ches/generate-string data) (.getValue pgobj)))))
+
+  (testing "Respects :pgtype metadata"
+    (let [data (with-meta {:foo "bar"} {:pgtype "json"})
+          pgobj (->pgobject data)]
+      (is (instance? PGobject pgobj))
+      (is (= "json" (.getType pgobj)))
+      (is (= (ches/generate-string {:foo "bar"}) (.getValue pgobj))))))
