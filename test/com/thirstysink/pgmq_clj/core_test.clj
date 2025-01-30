@@ -11,6 +11,7 @@
 ;; TODO: separate these with annotations of more like integration tests and unit tests
 
 (defonce container (db/pgmq-container))
+
 (defrecord MockAdapter []
   adapter/Adapter
   (execute! [_ sql _]
