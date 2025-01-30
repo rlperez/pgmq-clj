@@ -64,7 +64,6 @@
     (when (empty? extension-check)
       (throw (ex-info "PGMQ extension is not installed." {:cause :extension-missing})))))
 
-#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn make-hikari-adapter [config]
   (let [datasource (doto (HikariDataSource.)
                      (.setJdbcUrl (:jdbc-url config))
