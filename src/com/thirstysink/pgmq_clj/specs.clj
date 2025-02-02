@@ -98,3 +98,8 @@
                :queue-name ::queue-name
                :msg-id ::msg-id)
   :ret boolean?)
+
+(s/fdef c/pop-message
+  :args (s/cat :adapter ::adapter
+               :queue-name ::queue-name)
+  :ret ::queue-record)
