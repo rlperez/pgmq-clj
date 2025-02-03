@@ -216,7 +216,7 @@
                             #"Call to com.thirstysink.pgmq-clj.core/list-queues did not conform to spec."
                             (core/list-queues nil))))))
 
-(deftest test-timestamp-spec
+(deftest timestamp-spec-test
   (testing "Valid string formats"
     (is (s/valid? ::specs/timestamp "2025-01-11T14:30:00"))
     (is (s/valid? ::specs/timestamp "2025-01-11T14:30:00.123456"))
@@ -234,3 +234,13 @@
     (is (s/valid? ::specs/timestamp (java.time.Instant/now))))
   (testing "Invalid Instant object"
     (is (not (s/valid? ::specs/timestamp "not an instant")))))
+
+(deftest pop-message-test
+  (let [adapter (->MockAdapter)
+        queue-name "test-queue"]
+    (testing "Valid arguments"
+      (is (s/valid? ::specs/pop-message adapter queue-name)))
+    (testing "Invalid arguments"
+      (is (not (s/valid? ::specs/pop-message nil queue-name)))
+      (is (not (s/valid? ::specs/pop-message {} queue-name)))
+      (is (not (s/valid? ::specs/pop-message adapter nil))))))
