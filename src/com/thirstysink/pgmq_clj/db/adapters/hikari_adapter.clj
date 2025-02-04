@@ -1,6 +1,7 @@
 (ns com.thirstysink.pgmq-clj.db.adapters.hikari-adapter
   (:require [next.jdbc :as jdbc]
             [next.jdbc.result-set :as rs]
+            [next.jdbc.date-time]
             [next.jdbc.prepare :as prepare]
             [com.thirstysink.pgmq-clj.db.adapter :as adapter]
             [com.thirstysink.pgmq-clj.json :refer [<-json ->json]])
@@ -85,7 +86,6 @@
   clojure.lang.IPersistentMap
   (set-parameter [m ^PreparedStatement s i]
     (.setObject s i (->pgobject m)))
-
   clojure.lang.IPersistentVector
   (set-parameter [v ^PreparedStatement s i]
     (.setObject s i (->pgobject v))))

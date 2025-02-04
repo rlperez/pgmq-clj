@@ -1,7 +1,9 @@
 (ns com.thirstysink.pgmq-clj.core-test
   (:require
    [clojure.core :as c]
+   [clojure.spec.alpha :as s]
    [clojure.test :refer [deftest is testing use-fixtures]]
+   [com.thirstysink.pgmq-clj.specs :as specs]
    [com.thirstysink.pgmq-clj.core :as core]
    [com.thirstysink.pgmq-clj.instrumentation :as inst]
    [com.thirstysink.util.db :as db]))
@@ -22,7 +24,6 @@
   (let [adapter (db/setup-adapter container)
         queue-name "test-queue"]
     (testing "create-queue and drop-queue should add and remove queues"
-
       (let [queue-name-1 "test_queue_1"
             queue-name-2 "test_queue_2"]
         (let [queues (core/list-queues adapter)]
@@ -95,4 +96,11 @@
     (testing "delete message that doesn't exist"
       (core/create-queue adapter queue-name)
       (is (false? (core/delete-message adapter queue-name 18728)))
-      (core/drop-queue adapter queue-name))))
+      (core/drop-queue adapter queue-name))
+    (testing "pop-message should return one message and remove it from queue"
+      (core/create-queue adapter queue-name)
+      (let [message {:foo "bar"}
+            _ (core/send-message adapter queue-name message nil 0)
+            popped-message (core/pop-message adapter queue-name)]
+        (is (s/valid? ::specs/message-record popped-message))
+        (is (nil? (core/pop-message adapter queue-name)))))))
