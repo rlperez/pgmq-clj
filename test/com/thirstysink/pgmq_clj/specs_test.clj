@@ -14,7 +14,7 @@
       (finally
         (inst/disable-instrumentation)))))
 
-(def sql-time java.time.Instant/now)
+(def sql-time (java.time.Instant/now))
 
 (defrecord MockAdapter []
   adapter/Adapter
@@ -226,15 +226,16 @@
   (let [adapter (->MockAdapter)
         queue-name "test-queue"]
     (testing "Valid arguments"
-      (is (s/valid? ::specs/message-record (core/pop-message adapter queue-name)))
-      (testing "Invalid arguments"
-        (let [msg #"Call to com.thirstysink.pgmq-clj.core/pop-message did not conform to spec."]
-          (is (thrown-with-msg? clojure.lang.ExceptionInfo
-                                msg
-                                (core/pop-message nil queue-name)))
-          (is (thrown-with-msg? clojure.lang.ExceptionInfo
-                                msg
-                                (core/pop-message {} queue-name)))
-          (is (thrown-with-msg? clojure.lang.ExceptionInfo
-                                msg
-                                (core/pop-message nil queue-name))))))))
+      (let [popped-message (core/pop-message adapter queue-name)]
+        (is (s/valid? ::specs/message-record popped-message))
+        (testing "Invalid arguments"
+          (let [msg #"Call to com.thirstysink.pgmq-clj.core/pop-message did not conform to spec."]
+            (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                                  msg
+                                  (core/pop-message nil queue-name)))
+            (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                                  msg
+                                  (core/pop-message {} queue-name)))
+            (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                                  msg
+                                  (core/pop-message nil queue-name)))))))))
