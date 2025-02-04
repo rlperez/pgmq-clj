@@ -37,14 +37,17 @@
         result (adapter/execute! adapter delete-sql [queue-name msg-id])]
     (:delete result)))
 
-;; TODO: (defn pop-message [adapter queue-name] nil)
+(defn pop-message [adapter queue-name]
+  (let [pop-sql "SELECT * FROM pgmq.pop(?);"
+        result (adapter/query adapter pop-sql [queue-name])]
+    (first result)))
 
 ;; TODO: (defn archive-message [adapter queue-name msg-id] nil)
 
 ;; TODO:
 ;; delete-batch
 ;; send-batch
-; create-partitioned
+;; create-partitioned
 ;; read-with-polling
 
 (if inst/instrumentation-enabled?
