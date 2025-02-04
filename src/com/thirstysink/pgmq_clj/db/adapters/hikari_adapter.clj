@@ -1,7 +1,7 @@
 (ns com.thirstysink.pgmq-clj.db.adapters.hikari-adapter
   (:require [next.jdbc :as jdbc]
-            [next.jdbc.result-set :as rs]
             [next.jdbc.date-time]
+            [next.jdbc.result-set :as rs]
             [next.jdbc.prepare :as prepare]
             [com.thirstysink.pgmq-clj.db.adapter :as adapter]
             [com.thirstysink.pgmq-clj.json :refer [<-json ->json]])
@@ -97,7 +97,12 @@
   (read-column-by-label [^org.postgresql.util.PGobject v _]
     (<-pgobject v))
   (read-column-by-index [^org.postgresql.util.PGobject v _2 _3]
-    (<-pgobject v)))
+    (<-pgobject v))
+  java.sql.Timestamp
+  (read-column-by-label [^java.sql.Timestamp v _]
+    (.toInstant v))
+  (read-column-by-index [^java.sql.Timestamp v _2 _3]
+    (.toInstant v)))
 
 (defn ensure-pgmq-extension [adapter]
   (let [check-extension-sql "SELECT extname FROM pg_extension WHERE extname = 'pgmq';"
