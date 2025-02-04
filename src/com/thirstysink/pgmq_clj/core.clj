@@ -42,8 +42,6 @@
         result (adapter/query adapter pop-sql [queue-name])]
     (first result)))
 
-;; TODO: (defn pop-message [adapter queue-name] nil)
-
 ;; TODO: (defn archive-message [adapter queue-name msg-id] nil)
 
 ;; TODO:
