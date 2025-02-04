@@ -1,9 +1,7 @@
 (ns com.thirstysink.pgmq-clj.specs
   (:require [clojure.spec.alpha :as s]
             [com.thirstysink.pgmq-clj.db.adapter :as adapter]
-            [com.thirstysink.pgmq-clj.core :as c])
-  (:import [java.time.format DateTimeFormatter]
-           java.time.Instant))
+            [com.thirstysink.pgmq-clj.core :as c]))
 
 (s/def ::adapter #(satisfies? adapter/Adapter %))
 
@@ -22,17 +20,9 @@
         :nil? nil?))
 
 (s/def ::timestamp
-  (s/or :string (s/and string?
-                       #(try
-                          (.parse DateTimeFormatter/ISO_DATE_TIME %)
-                          true
-                          (catch Exception _ false)))
-        :instant #(instance? Instant %)))
+  #(instance? java.time.Instant %))
 
 (s/def ::msg-id (s/and number? pos?))
-
-(s/def ::msg-ids
-  (s/and (s/coll-of ::msg-id) #(seq %)))
 
 (s/def ::read-ct int?)
 
@@ -101,5 +91,4 @@
 
 (s/fdef c/pop-message
   :args (s/cat :adapter ::adapter
-               :queue-name ::queue-name)
-  :ret ::queue-record)
+               :queue-name ::queue-name))

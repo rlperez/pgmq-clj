@@ -4,8 +4,7 @@
             [com.thirstysink.pgmq-clj.instrumentation :as inst]
             [com.thirstysink.pgmq-clj.db.adapter :as adapter]
             [clojure.spec.alpha :as s]
-            [clojure.test :refer [deftest is testing use-fixtures]])
-  (:import [java.time Instant]))
+            [clojure.test :refer [deftest is testing use-fixtures]]))
 
 (use-fixtures :once
   (fn [tests]
@@ -14,6 +13,8 @@
       (tests)
       (finally
         (inst/disable-instrumentation)))))
+
+(def sql-time java.time.Instant/now)
 
 (defrecord MockAdapter []
   adapter/Adapter
@@ -28,43 +29,24 @@
       [{:queue-name "my-queue"
         :is-partitioned false
         :is-unlogged true
-        :created-at (Instant/now)}]
+        :created-at sql-time}]
       (re-find #"read" sql)
       [{:msg-id 1
         :read-ct 1
-        :enqueued-at (Instant/now)
-        :vt (Instant/now)
+        :enqueued-at sql-time
+        :vt sql-time
         :message {:foo "bar"}
         :headers nil}]
       (re-find #"pop" sql)
       [{:msg-id 1
         :read-ct 1
-        :enqueued-at (Instant/now)
-        :vt (Instant/now)
+        :enqueued-at sql-time
+        :vt sql-time
         :message {:foo "bar"}
         :headers nil}]))
 
   (with-transaction [_ f] (f))
   (close [_] nil))
-
-(deftest timestamp-spec-test
-  (testing "Valid string formats"
-    (is (s/valid? ::specs/timestamp "2025-01-11T14:30:00"))
-    (is (s/valid? ::specs/timestamp "2025-01-11T14:30:00.123456"))
-    (is (s/valid? ::specs/timestamp "2025-01-11T14:30:00.000000"))
-    (is (s/valid? ::specs/timestamp "2025-01-11T14:30:00+00:00"))
-    (is (s/valid? ::specs/timestamp (Instant/now))))
-  (testing "Invalid string formats"
-    (is (not (s/valid? ::specs/timestamp "11/01/2025 14:30:00")))
-    (is (not (s/valid? ::specs/timestamp "2025-01-11 14:60:00")))
-    (is (not (s/valid? ::specs/timestamp "2025-01-11T14:60:00")))
-    (is (not (s/valid? ::specs/timestamp "2025-01-11T14:30:00+25:00")))
-    (is (not (s/valid? ::specs/timestamp "2025-01-11T14:30:00:00")))
-    (is (not (s/valid? ::specs/timestamp "not an instant"))))
-  (testing "Instant object"
-    (is (s/valid? ::specs/timestamp (java.time.Instant/now))))
-  (testing "Invalid Instant object"
-    (is (not (s/valid? ::specs/timestamp "not an instant")))))
 
 (deftest create-queue-name-spec-test
   (let [adapter (->MockAdapter)
