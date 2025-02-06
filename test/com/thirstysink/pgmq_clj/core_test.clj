@@ -135,3 +135,4 @@
         (is (= (map :msg-id archive) archive-ids))
         (core/drop-queue adapter queue-name)))
     (adapter/close adapter)))
+
