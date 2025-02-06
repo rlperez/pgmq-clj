@@ -42,9 +42,12 @@
         result (adapter/query adapter pop-sql [queue-name])]
     (first result)))
 
-;; TODO: (defn archive-message [adapter queue-name msg-id] nil)
+(defn archive-message [adapter queue-name msg-ids]
+  (let [archive-sql "SELECT * FROM pgmq.archive(?, ?::BIGINT[]);"
+        result (adapter/query adapter archive-sql [queue-name (into-array Long msg-ids)])]
+    (map :archive result)))
 
-;; TODO:
+;; TODO: Last thing, make sure query and execute are used as needed
 ;; delete-batch
 ;; send-batch
 ;; create-partitioned

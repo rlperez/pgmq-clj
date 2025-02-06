@@ -6,7 +6,8 @@
    [com.thirstysink.pgmq-clj.specs :as specs]
    [com.thirstysink.pgmq-clj.core :as core]
    [com.thirstysink.pgmq-clj.instrumentation :as inst]
-   [com.thirstysink.util.db :as db]))
+   [com.thirstysink.util.db :as db]
+   [com.thirstysink.pgmq-clj.db.adapter :as adapter]))
 
 (defonce container (db/pgmq-container))
 
@@ -22,7 +23,7 @@
 
 (deftest integration-tests
   (let [adapter (db/setup-adapter container)
-        queue-name "test-queue"]
+        queue-name "test_queue"]
     (testing "create-queue and drop-queue should add and remove queues"
       (let [queue-name-1 "test_queue_1"
             queue-name-2 "test_queue_2"]
@@ -103,4 +104,35 @@
             _ (core/send-message adapter queue-name message nil 0)
             popped-message (core/pop-message adapter queue-name)]
         (is (s/valid? ::specs/message-record popped-message))
-        (is (nil? (core/pop-message adapter queue-name)))))))
+        (is (nil? (core/pop-message adapter queue-name)))))
+    (testing "archive-message should move 1 message to an archive table"
+      (core/create-queue adapter queue-name)
+      (let [message {:foo "bar"}
+            msg-id-1 (core/send-message adapter queue-name message nil 0)
+            _ (core/read-message adapter queue-name 30 30 {})
+            archive-ids (core/archive-message adapter queue-name [msg-id-1])
+            archive (adapter/query adapter (format "SELECT * FROM pgmq.a_%s;" queue-name) [])]
+        (println archive-ids)
+        (defn count-entries-with-msg-id [coll msg-id]
+          (count (filter #(= (:msg-id %) msg-id) coll)))
+        (is (s/valid? ::specs/msg-ids archive-ids))
+        (is (= 1 (count-entries-with-msg-id archive msg-id-1)))
+        (is (= (map :msg-id archive) archive-ids))
+        (core/drop-queue adapter queue-name)))
+    (testing "archive-message should move 2 messages to an archive table"
+      (core/create-queue adapter queue-name)
+      (let [message {:foo "bar"}
+            msg-id-1 (core/send-message adapter queue-name message nil 0)
+            msg-id-2  (core/send-message adapter queue-name message nil 0)
+            _ (core/read-message adapter queue-name 30 30 {})
+            archive-ids (core/archive-message adapter queue-name [msg-id-1 msg-id-2])
+            archive (adapter/query adapter (format "SELECT * FROM pgmq.a_%s;" queue-name) [])]
+        (defn count-entries-with-msg-id [coll msg-id]
+          (count (filter #(= (:msg-id %) msg-id) coll)))
+        (is (s/valid? ::specs/msg-ids archive-ids))
+        (is (= 1 (count-entries-with-msg-id archive msg-id-1)))
+        (is (= 1 (count-entries-with-msg-id archive msg-id-2)))
+        (is (= (map :msg-id archive) archive-ids))
+        (core/drop-queue adapter queue-name)))
+    (adapter/close adapter)))
+

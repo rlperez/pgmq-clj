@@ -24,6 +24,8 @@
 
 (s/def ::msg-id (s/and number? pos?))
 
+(s/def ::msg-ids (or (s/coll-of ::msg-id) ::msg-id))
+
 (s/def ::read-ct int?)
 
 (s/def ::delay int?)
@@ -91,4 +93,11 @@
 
 (s/fdef c/pop-message
   :args (s/cat :adapter ::adapter
-               :queue-name ::queue-name))
+               :queue-name ::queue-name)
+  :ret ::message-record)
+
+(s/fdef c/archive-message
+  :args (s/cat :adapter ::adapter
+               :queue-name ::queue-name
+               :msg-ids ::msg-ids)
+  :ret ::msg-ids)
