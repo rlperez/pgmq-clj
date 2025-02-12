@@ -55,6 +55,9 @@
 (s/def ::message-record
   (s/keys :req-un [::msg-id ::read-ct ::enqueued-at ::vt ::message ::headers]))
 
+(s/def ::message-records
+  (s/coll-of ::mesage-record))
+
 (s/def ::message-result (s/coll-of ::message-record))
 
 (s/fdef c/create-queue
@@ -101,3 +104,10 @@
                :queue-name ::queue-name
                :msg-ids ::msg-ids)
   :ret ::msg-ids)
+
+(s/fdef c/send-message-batch
+  :args (s/cat :adapter ::adapter
+               :queue-name ::queue-name
+               :payload ::json
+               :headers ::headers
+               :delay ::delay))

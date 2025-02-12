@@ -134,5 +134,14 @@
         (is (= 1 (count-entries-with-msg-id archive msg-id-2)))
         (is (= (map :msg-id archive) archive-ids))
         (core/drop-queue adapter queue-name)))
+    (testing "send-message-batch should send and return a list of ids"
+      (core/create-queue adapter queue-name)
+      (let [payload [{:foo "bar"} {:baz "bat"}]
+            headers {:x-my-data "yup"}
+            result (core/send-message-batch adapter queue-name payload headers 0)]
+        (println (core/read-message adapter queue-name 30 100 {}))
+        (is (some? result))
+        (is (coll? result))
+        (is (= result [1 2])))
+      (core/drop-queue adapter queue-name))
     (adapter/close adapter)))
-

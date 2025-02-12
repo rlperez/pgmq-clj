@@ -28,6 +28,21 @@
                          :params params}
                         e)))))
 
+  ;; Execute a batch query with optional parameters
+  (execute-batch! [this sql params]
+    (try
+      (jdbc/execute-batch!
+       (:datasource this)
+       sql
+       params
+       {:builder-fn rs/as-unqualified-kebab-maps})
+      (catch Exception e
+        (throw (ex-info "Error executing batch statement"
+                        {:type :execute-error
+                         :sql sql
+                         :params params}
+                        e)))))
+
   ;; Execute a SELECT query with optional parameters
   (query [this sql params]
     (try
