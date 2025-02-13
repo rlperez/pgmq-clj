@@ -25,6 +25,10 @@
                        (println "Executing command:" cmd)
                        (shell {:dir "."} cmd))}
 
+         pom {:doc "generates a Maven pom.xml"
+              :task (do
+                      (clojure {:dir "."} "-Spom"))}
+
          uberjar   {:doc  "builds the uberjar with shadow-cljs output"
                     :task (do
                             (clojure {:dir "."} "-T:build all"))
