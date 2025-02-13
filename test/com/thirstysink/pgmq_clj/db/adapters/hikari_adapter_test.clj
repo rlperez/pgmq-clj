@@ -28,12 +28,10 @@
       (db/reset-table adapter test-table-name)
       (adapter/execute-one! adapter insert-sql ["Alice"])
       (adapter/execute-one! adapter insert-sql ["Bob"])
-
       (let [results (adapter/query adapter select-sql [])]
         (is (= 2 (count results)))
         (is (= "Alice" (:name (first results))))
         (is (= "Bob" (:name (second results))))))
-
     (testing "execute-one! and query execute an insert and query wrapped in transaction."
       (db/reset-table adapter test-table-name)
       (adapter/with-transaction adapter
@@ -69,6 +67,15 @@
              clojure.lang.ExceptionInfo
              #"Error executing statement"
              (adapter/execute-one! adapter "UPDATE test SET value = ?" [42]))))))
+  (testing "HikariAdapter.execute! throws exception"
+    (let [mock-datasource (atom nil)
+          adapter (->HikariAdapter mock-datasource)]
+      (with-redefs [jdbc/execute! (fn [_ _] (throw (Exception. "Mock execute-one! failure")))]
+        (is (thrown-with-msg?
+             clojure.lang.ExceptionInfo
+             #"Error executing statement"
+             (adapter/execute! adapter "UPDATE test SET value = ?" [42]))))))
+
   (testing "HikariAdapter.query throws exception"
     (let [mock-datasource (atom nil)
           adapter (->HikariAdapter mock-datasource)]

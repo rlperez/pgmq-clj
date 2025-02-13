@@ -21,6 +21,9 @@
         (inst/disable-instrumentation)
         (db/stop-postgres-container container)))))
 
+(defn- count-entries-with-msg-id [coll msg-id]
+  (count (filter #(= (:msg-id %) msg-id) coll)))
+
 (deftest integration-tests
   (let [adapter (db/setup-adapter container)
         queue-name "test_queue"]
@@ -113,8 +116,6 @@
             archive-ids (core/archive-message adapter queue-name [msg-id-1])
             archive (adapter/query adapter (format "SELECT * FROM pgmq.a_%s;" queue-name) [])]
         (println archive-ids)
-        (defn count-entries-with-msg-id [coll msg-id]
-          (count (filter #(= (:msg-id %) msg-id) coll)))
         (is (s/valid? ::specs/msg-ids archive-ids))
         (is (= 1 (count-entries-with-msg-id archive msg-id-1)))
         (is (= (map :msg-id archive) archive-ids))
@@ -127,8 +128,6 @@
             _ (core/read-message adapter queue-name 30 30 {})
             archive-ids (core/archive-message adapter queue-name [msg-id-1 msg-id-2])
             archive (adapter/query adapter (format "SELECT * FROM pgmq.a_%s;" queue-name) [])]
-        (defn count-entries-with-msg-id [coll msg-id]
-          (count (filter #(= (:msg-id %) msg-id) coll)))
         (is (s/valid? ::specs/msg-ids archive-ids))
         (is (= 1 (count-entries-with-msg-id archive msg-id-1)))
         (is (= 1 (count-entries-with-msg-id archive msg-id-2)))
@@ -136,7 +135,7 @@
         (core/drop-queue adapter queue-name)))
     (testing "send-message-batch should send and return a list of ids"
       (core/create-queue adapter queue-name)
-      (let [payload [{:data {:foo "bar"} :headers {:x-my-data "yup"}}
+      (let [payload [{:data "bar" :headers {:x-my-data "yup"}}
                      {:data {:baz "bat"} :headers {:x-my-data "nope"}}]
             result (core/send-message-batch adapter queue-name payload 0)]
         (is (some? result))

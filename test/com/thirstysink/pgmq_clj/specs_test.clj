@@ -51,6 +51,15 @@
   (with-transaction [_ f] (f))
   (close [_] nil))
 
+(deftest json-spec-test
+  (testing "json valid values"
+    (is (s/valid? ::specs/json 1))
+    (is (s/valid? ::specs/json {}))
+    (is (s/valid? ::specs/json []))
+    (is (s/valid? ::specs/json "A"))
+    (is (s/valid? ::specs/json false))
+    (is (s/valid? ::specs/json nil))))
+
 (deftest create-queue-name-spec-test
   (let [adapter (->MockAdapter)
         expected-msg #"Call to com.thirstysink.pgmq-clj.core/create-queue did not conform to spec."]
