@@ -13,7 +13,7 @@
   adapter/Adapter
 
   ;; Execute a query (e.g., UPDATE, INSERT, DELETE) with optional parameters
-  (execute! [this sql params]
+  (execute-one! [this sql params]
     (try
       (jdbc/execute-one!
        (:datasource this)
@@ -28,16 +28,16 @@
                          :params params}
                         e)))))
 
-  ;; Execute a batch query with optional parameters
-  (execute-batch! [this sql params]
+  (execute! [this sql params]
     (try
-      (jdbc/execute-batch!
+      (jdbc/execute!
        (:datasource this)
-       sql
-       params
+       (if (seq params)
+         (into [sql] params)
+         [sql])
        {:builder-fn rs/as-unqualified-kebab-maps})
       (catch Exception e
-        (throw (ex-info "Error executing batch statement"
+        (throw (ex-info "Error executing statement"
                         {:type :execute-error
                          :sql sql
                          :params params}

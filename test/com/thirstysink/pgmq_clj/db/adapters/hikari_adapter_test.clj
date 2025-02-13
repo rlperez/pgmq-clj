@@ -24,22 +24,22 @@
   (let [adapter (db/setup-adapter container)
         insert-sql "INSERT INTO test_table (name) VALUES (?);"
         select-sql "SELECT * FROM test_table;"]
-    (testing "execute! and query execute an insert and query."
+    (testing "execute-one! and query execute an insert and query."
       (db/reset-table adapter test-table-name)
-      (adapter/execute! adapter insert-sql ["Alice"])
-      (adapter/execute! adapter insert-sql ["Bob"])
+      (adapter/execute-one! adapter insert-sql ["Alice"])
+      (adapter/execute-one! adapter insert-sql ["Bob"])
 
       (let [results (adapter/query adapter select-sql [])]
         (is (= 2 (count results)))
         (is (= "Alice" (:name (first results))))
         (is (= "Bob" (:name (second results))))))
 
-    (testing "execute! and query execute an insert and query wrapped in transaction."
+    (testing "execute-one! and query execute an insert and query wrapped in transaction."
       (db/reset-table adapter test-table-name)
       (adapter/with-transaction adapter
         (fn [tx]
-          (adapter/execute! tx insert-sql ["Alice"])
-          (adapter/execute! tx insert-sql ["Bob"])))
+          (adapter/execute-one! tx insert-sql ["Alice"])
+          (adapter/execute-one! tx insert-sql ["Bob"])))
 
       (let [results (adapter/query adapter select-sql [])]
         (is (= 2 (count results)))
@@ -50,7 +50,7 @@
         (db/reset-table adapter test-table-name)
         (adapter/with-transaction adapter
           (fn [tx]
-            (adapter/execute! tx insert-sql ["Alice"])
+            (adapter/execute-one! tx insert-sql ["Alice"])
             (throw (Exception. "Simulated failure"))))
         (catch Exception e
           (is (= "Error in transaction" (.getMessage e)))
@@ -61,18 +61,18 @@
     (adapter/close adapter)))
 
 (deftest throws-handling-test
-  (testing "HikariAdapter.execute! throws exception"
+  (testing "HikariAdapter.execute-one! throws exception"
     (let [mock-datasource (atom nil)
           adapter (->HikariAdapter mock-datasource)]
-      (with-redefs [jdbc/execute! (fn [_ _] (throw (Exception. "Mock execute! failure")))]
+      (with-redefs [jdbc/execute-one! (fn [_ _] (throw (Exception. "Mock execute-one! failure")))]
         (is (thrown-with-msg?
              clojure.lang.ExceptionInfo
              #"Error executing statement"
-             (adapter/execute! adapter "UPDATE test SET value = ?" [42]))))))
+             (adapter/execute-one! adapter "UPDATE test SET value = ?" [42]))))))
   (testing "HikariAdapter.query throws exception"
     (let [mock-datasource (atom nil)
           adapter (->HikariAdapter mock-datasource)]
-      (with-redefs [jdbc/execute! (fn [_ _ _] (throw (Exception. "Mock query failure")))]
+      (with-redefs [jdbc/execute-one! (fn [_ _ _] (throw (Exception. "Mock query failure")))]
         (is (thrown-with-msg?
              clojure.lang.ExceptionInfo
              #"Error executing query"
