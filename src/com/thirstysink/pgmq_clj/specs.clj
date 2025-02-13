@@ -12,12 +12,12 @@
 (s/def ::quantity (s/and int? #(> % 0)))
 
 (s/def ::json
-  (s/or :map map?
-        :vector vector?
-        :string string?
-        :number number?
-        :boolean boolean?
-        :nil? nil?))
+  (s/spec (fn [x] (or (map? x)
+                      (vector? x)
+                      (string? x)
+                      (number? x)
+                      (boolean? x)
+                      (nil? x)))))
 
 (s/def ::timestamp
   #(instance? java.time.Instant %))
@@ -36,8 +36,6 @@
 
 (s/def ::message ::json)
 
-(s/def ::headers ::json)
-
 (s/def ::is-partitioned boolean?)
 
 (s/def ::is-unlogged boolean?)
@@ -53,12 +51,24 @@
 (s/def ::queue-result (s/coll-of ::queue-record))
 
 (s/def ::message-record
-  (s/keys :req-un [::msg-id ::read-ct ::enqueued-at ::vt ::message ::headers]))
+  (s/keys :req-un [::msg-id ::read-ct ::enqueued-at ::vt ::message]
+          :opt-un [::headers]))
 
 (s/def ::message-records
   (s/coll-of ::mesage-record))
 
-(s/def ::message-result (s/coll-of ::message-record))
+(s/def ::data ::json)
+
+(s/def ::header-key (s/or :string string? :keyword keyword?))
+
+(s/def ::header-value (s/or :string string? :number number? :list (s/coll-of (s/or :string string? :number number?))))
+
+(s/def ::headers (s/map-of ::header-key ::header-value :min-count 0))
+
+(s/def ::payload-object
+  (s/keys :req-un [::data ::headers]))
+
+(s/def ::payload-objects (s/coll-of ::payload-object))
 
 (s/fdef c/create-queue
   :args (s/cat :adapter ::adapter :queue-name ::queue-name)
@@ -75,8 +85,7 @@
 (s/fdef c/send-message
   :args (s/cat :adapter ::adapter
                :queue-name ::queue-name
-               :payload ::json
-               :headers ::json
+               :payload ::payload-object
                :delay ::delay)
   :ret ::msg-id)
 
@@ -86,7 +95,7 @@
                :visibility_time ::visibility_time
                :quantity ::quantity
                :filter ::json)
-  :ret ::message-result)
+  :ret ::message-records)
 
 (s/fdef c/delete-message
   :args (s/cat :adapter ::adapter
@@ -108,6 +117,5 @@
 (s/fdef c/send-message-batch
   :args (s/cat :adapter ::adapter
                :queue-name ::queue-name
-               :payload ::json
-               :headers ::headers
+               :payload ::payload-objects
                :delay ::delay))
