@@ -18,6 +18,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      - name: Install rlwrap
+        run: |
+          sudo apt install -y rlwrap
       - name: Install tool dependencies
         uses: jdx/mise-action@v2
       - name: Run tests

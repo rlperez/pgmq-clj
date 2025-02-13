@@ -13,9 +13,24 @@
   adapter/Adapter
 
   ;; Execute a query (e.g., UPDATE, INSERT, DELETE) with optional parameters
-  (execute! [this sql params]
+  (execute-one! [this sql params]
     (try
       (jdbc/execute-one!
+       (:datasource this)
+       (if (seq params)
+         (into [sql] params)
+         [sql])
+       {:builder-fn rs/as-unqualified-kebab-maps})
+      (catch Exception e
+        (throw (ex-info "Error executing statement"
+                        {:type :execute-error
+                         :sql sql
+                         :params params}
+                        e)))))
+
+  (execute! [this sql params]
+    (try
+      (jdbc/execute!
        (:datasource this)
        (if (seq params)
          (into [sql] params)

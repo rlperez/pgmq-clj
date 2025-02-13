@@ -28,5 +28,5 @@
 (defn reset-table [adapter table_name]
   (let [drop-table-sql (format "DROP TABLE IF EXISTS %s;" table_name)
         create-table-sql (format "CREATE TABLE %s (id SERIAL PRIMARY KEY, name TEXT);" table_name)]
-    (adapter/execute! adapter drop-table-sql [])
-    (adapter/execute! adapter create-table-sql [])))
+    (adapter/execute-one! adapter drop-table-sql [])
+    (adapter/execute-one! adapter create-table-sql [])))

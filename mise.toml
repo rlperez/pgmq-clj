@@ -5,4 +5,4 @@ _.file = { path = ".env" }
 babashka = "1.12"
 clojure = "1.12"
 java = "21"
-rlwrap = "latest"
+# rlwrap = "latest"
