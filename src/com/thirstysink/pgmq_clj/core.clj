@@ -48,10 +48,11 @@
         result (adapter/query adapter archive-sql [queue-name (into-array Long msg-ids)])]
     (map :archive result)))
 
-;; TODO: Need to do something different if it's an array or not
 (defn- ->jsonb-str [obj]
-  (let [s (ches/generate-string (mapv #(ches/generate-string %) obj))]
-    (str/replace-first (str/replace s "]" "}") "[" "{")))
+  (let [json-str (if (sequential? obj)
+                   (ches/generate-string (mapv #(ches/generate-string %) obj))
+                   (ches/generate-string obj))]
+    (str/replace-first (str/replace json-str "]" "}") "[" "{")))
 
 ;; Payload - [{headers: {} data: {}}]
 (defn send-message-batch [adapter queue-name payload delay]
