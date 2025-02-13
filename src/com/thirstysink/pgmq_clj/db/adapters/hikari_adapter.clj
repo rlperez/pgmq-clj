@@ -1,10 +1,11 @@
 (ns com.thirstysink.pgmq-clj.db.adapters.hikari-adapter
-  (:require [next.jdbc :as jdbc]
+  (:require [cheshire.core :as ches]
+            [next.jdbc :as jdbc]
             [next.jdbc.date-time]
             [next.jdbc.result-set :as rs]
             [next.jdbc.prepare :as prepare]
             [com.thirstysink.pgmq-clj.db.adapter :as adapter]
-            [com.thirstysink.pgmq-clj.json :refer [<-json ->json]])
+            [com.thirstysink.pgmq-clj.json :refer [->json]])
   (:import [com.zaxxer.hikari HikariDataSource]
            [org.postgresql.util PGobject]
            [java.sql PreparedStatement]))
@@ -94,7 +95,10 @@
   (let [type  (.getType v)
         value (.getValue v)]
     (if (#{"jsonb" "json"} type)
-      (some-> value <-json (with-meta {:pgtype type}))
+      (try
+        (ches/parse-string value true)
+        (catch Exception _
+          value))
       value)))
 
 (extend-protocol prepare/SettableParameter
@@ -105,8 +109,6 @@
   (set-parameter [v ^PreparedStatement s i]
     (.setObject s i (->pgobject v))))
 
-;; if a row contains a PGobject then we'll convert them to Clojure data
-;; while reading (if column is either "json" or "jsonb" type):
 (extend-protocol rs/ReadableColumn
   org.postgresql.util.PGobject
   (read-column-by-label [^org.postgresql.util.PGobject v _]

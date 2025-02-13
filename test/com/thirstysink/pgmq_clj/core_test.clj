@@ -115,7 +115,6 @@
             _ (core/read-message adapter queue-name 30 30 {})
             archive-ids (core/archive-message adapter queue-name [msg-id-1])
             archive (adapter/query adapter (format "SELECT * FROM pgmq.a_%s;" queue-name) [])]
-        (println archive-ids)
         (is (s/valid? ::specs/msg-ids archive-ids))
         (is (= 1 (count-entries-with-msg-id archive msg-id-1)))
         (is (= (map :msg-id archive) archive-ids))
@@ -141,5 +140,16 @@
         (is (some? result))
         (is (coll? result))
         (is (= result [1 2])))
+      (core/drop-queue adapter queue-name))
+    (testing "delete-message-batch should delete multiple messages"
+      (core/create-queue adapter queue-name)
+      (let [payload [{:data "bar" :headers {:x-my-data "yup"}}
+                     {:data {:baz "bat"} :headers {:x-my-data "nope"}}]
+            send-result (core/send-message-batch adapter queue-name payload 0)
+            read-result (core/read-message adapter queue-name 0 30 {})
+            delete-result (core/delete-message-batch adapter queue-name [1 2 3])]
+        (is (= send-result [1 2]))
+        (is (= (count read-result) 2))
+        (is (= delete-result [1 2])))
       (core/drop-queue adapter queue-name))
     (adapter/close adapter)))
