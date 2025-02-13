@@ -18,13 +18,14 @@
 
 (defrecord MockAdapter []
   adapter/Adapter
-  (execute! [_ sql _]
+  (execute-one! [_ sql _]
     (cond (re-find #"delete" sql)
           {:delete true}
           (re-find #"send_batch" sql)
-          {:send-batch [1, 2 ,3]}
+          [{:send-batch 1 {:send-batch 2} {:send-batch 3}}]
           (re-find #"send" sql)
           {:send 1}))
+  (execute! [_ _ _] {})
   (query [_ sql _]
     (cond
       (re-find #"list" sql)
@@ -153,37 +154,37 @@
   (let [adapter (->MockAdapter)
         queue-name "test-queue"]
     (testing "send-message spec validation valid arguments"
-      (is (s/valid? ::specs/msg-id (core/send-message adapter queue-name {:foo "bar"} {:baz "bat"} 0)))
-      (is (s/valid? ::specs/msg-id (core/send-message adapter queue-name {} {} 0)))
-      (is (s/valid? ::specs/msg-id (core/send-message adapter queue-name [] [] 0)))
-      (is (s/valid? ::specs/msg-id (core/send-message adapter queue-name 1 2 0)))
-      (is (s/valid? ::specs/msg-id (core/send-message adapter queue-name "some string" "some other string" 0))))
+      (is (s/valid? ::specs/msg-id (core/send-message adapter queue-name {:data {:foo "bar"} :headers {:baz "bat"}} 0)))
+      (is (s/valid? ::specs/msg-id (core/send-message adapter queue-name {:headers {} :data {}} 0)))
+      (is (s/valid? ::specs/msg-id (core/send-message adapter queue-name {:data [] :headers {}} 0)))
+      (is (s/valid? ::specs/msg-id (core/send-message adapter queue-name {:data 1 :headers {:x-data 2}} 0)))
+      (is (s/valid? ::specs/msg-id (core/send-message adapter queue-name {:data "some string" :headers {:x-data "some other string"}} 0))))
     (testing "send-message spec validation invalid adapter"
       (is (thrown-with-msg? clojure.lang.ExceptionInfo
                             #"Call to com.thirstysink.pgmq-clj.core/send-message did not conform to spec."
-                            (core/send-message nil queue-name {:foo "bar"} {} 0)))
+                            (core/send-message nil queue-name {:data {:foo "bar"} :headers {}} 0)))
       (is (thrown-with-msg? clojure.lang.ExceptionInfo
                             #"Call to com.thirstysink.pgmq-clj.core/send-message did not conform to spec."
-                            (core/send-message {} queue-name {:foo "bar"} {} 0))))
+                            (core/send-message {} queue-name {:data {:foo "bar"} :headers {}} 0))))
     (testing "send-message spec validation invalid queue-name"
       (is (thrown-with-msg? clojure.lang.ExceptionInfo
                             #"Call to com.thirstysink.pgmq-clj.core/send-message did not conform to spec."
-                            (core/send-message adapter 8008 {} {} 0)))
+                            (core/send-message adapter 8008 {:data {} :headers {}} 0)))
       (is (thrown-with-msg? clojure.lang.ExceptionInfo
                             #"Call to com.thirstysink.pgmq-clj.core/send-message did not conform to spec."
-                            (core/send-message adapter nil {} {} 0))))
+                            (core/send-message adapter nil {:data {} :headers {}} 0))))
     (testing "send-message spec validation invalid payload"
       (is (thrown-with-msg? clojure.lang.ExceptionInfo
                             #"Call to com.thirstysink.pgmq-clj.core/send-message did not conform to spec."
-                            (core/send-message adapter 8008 nil {} 0))))
+                            (core/send-message adapter 8008 {:headers {}} 0))))
     (testing "send-message spec validation invalid headers"
       (is (thrown-with-msg? clojure.lang.ExceptionInfo
                             #"Call to com.thirstysink.pgmq-clj.core/send-message did not conform to spec."
-                            (core/send-message adapter 8008 {} nil 0))))
+                            (core/send-message adapter 8008 {:data {} :headers nil} 0))))
     (testing "send-message spec validation invalid delay"
       (is (thrown-with-msg? clojure.lang.ExceptionInfo
                             #"Call to com.thirstysink.pgmq-clj.core/send-message did not conform to spec."
-                            (core/send-message adapter 8008 {} {} "Not an int"))))))
+                            (core/send-message adapter 8008 {} "Not an int"))))))
 
 (deftest delete-message-spec-test
   (let [adapter (->MockAdapter)
@@ -243,37 +244,37 @@
   (let [adapter (->MockAdapter)
         queue-name "test-queue"]
     (testing "send-message-batch spec validation valid arguments"
-      (is (s/valid? ::specs/msg-ids (core/send-message adapter queue-name {:foo "bar"} {:baz "bat"} 0)))
-      (is (s/valid? ::specs/msg-ids (core/send-message adapter queue-name {} {} 0)))
-      (is (s/valid? ::specs/msg-ids (core/send-message adapter queue-name [] [] 0)))
-      (is (s/valid? ::specs/msg-ids (core/send-message adapter queue-name 1 2 0)))
-      (is (s/valid? ::specs/msg-ids (core/send-message adapter queue-name "some string" "some other string" 0))))
+      (is (s/valid? ::specs/msg-ids (core/send-message-batch adapter queue-name [{:data {:foo "bar"} :headers {:baz "bat"}}] 0)))
+      (is (s/valid? ::specs/msg-ids (core/send-message-batch adapter queue-name [{:data {} :headers {}}] 0)))
+      (is (s/valid? ::specs/msg-ids (core/send-message-batch adapter queue-name [{:data [] :headers {}}] 0)))
+      (is (s/valid? ::specs/msg-ids (core/send-message-batch adapter queue-name [{:data 1 :headers {:x-data 2}}] 0)))
+      (is (s/valid? ::specs/msg-ids (core/send-message-batch adapter queue-name [{:data "some string" :headers {"x-data" "some other string"}}] 0))))
     (testing "send-message-batch spec validation invalid adapter"
       (is (thrown-with-msg? clojure.lang.ExceptionInfo
                             #"Call to com.thirstysink.pgmq-clj.core/send-message-batch did not conform to spec."
-                            (core/send-message-batch nil queue-name [{:foo "bar"}] {} 0)))
+                            (core/send-message-batch nil queue-name [{:data [{:foo "bar"}] :headers {}}] 0)))
       (is (thrown-with-msg? clojure.lang.ExceptionInfo
                             #"Call to com.thirstysink.pgmq-clj.core/send-message-batch did not conform to spec."
-                            (core/send-message-batch {} queue-name [{:foo "bar"}] {} 0))))
+                            (core/send-message-batch {} queue-name [{:data {:foo "bar"} :headers {}}] 0))))
     (testing "send-message-batch spec validation invalid queue-name"
       (is (thrown-with-msg? clojure.lang.ExceptionInfo
                             #"Call to com.thirstysink.pgmq-clj.core/send-message-batch did not conform to spec."
-                            (core/send-message-batch adapter 8008 [{}] {} 0)))
+                            (core/send-message-batch adapter 8008 [{:data [{}] :headers {}}] 0)))
       (is (thrown-with-msg? clojure.lang.ExceptionInfo
                             #"Call to com.thirstysink.pgmq-clj.core/send-message-batch did not conform to spec."
-                            (core/send-message-batch adapter nil [{}] {} 0)))
+                            (core/send-message-batch adapter nil [{:data [{}] :headers {}}] 0)))
       (is (thrown-with-msg? clojure.lang.ExceptionInfo
                             #"Call to com.thirstysink.pgmq-clj.core/send-message-batch did not conform to spec."
-                            (core/send-message-batch adapter nil {} {} 0))))
+                            (core/send-message-batch adapter nil [{:data {} :headers {}}] 0))))
     (testing "send-message-batch spec validation invalid payload"
       (is (thrown-with-msg? clojure.lang.ExceptionInfo
                             #"Call to com.thirstysink.pgmq-clj.core/send-message-batch did not conform to spec."
-                            (core/send-message-batch adapter 8008 nil {} 0))))
+                            (core/send-message-batch adapter 8008 nil 0))))
     (testing "send-message-batch spec validation invalid headers"
       (is (thrown-with-msg? clojure.lang.ExceptionInfo
                             #"Call to com.thirstysink.pgmq-clj.core/send-message-batch did not conform to spec."
-                            (core/send-message-batch adapter 8008 [{}] nil 0))))
+                            (core/send-message-batch adapter 8008 [{}] 0))))
     (testing "send-message-batch spec validation invalid delay"
       (is (thrown-with-msg? clojure.lang.ExceptionInfo
                             #"Call to com.thirstysink.pgmq-clj.core/send-message-batch did not conform to spec."
-                            (core/send-message-batch adapter 8008 {} {} "Not an int"))))))
+                            (core/send-message-batch adapter 8008 [{:data {} :headers {}}] "Not an int"))))))

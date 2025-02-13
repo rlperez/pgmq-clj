@@ -52,7 +52,7 @@
       (core/create-queue adapter queue-name)
       (let [payload {:foo "bar"}
             headers {:x-my-data "yup"}
-            result (core/send-message adapter queue-name payload headers 0)]
+            result (core/send-message adapter queue-name {:data payload :headers headers} 0)]
         (is (some? result))
         (is (number? result))
         (is (= result 1)))
@@ -64,10 +64,10 @@
         ;; Send two messages to a fresh queue
         (let [payload {:foo "bar"}
               headers {:x-my-data "yup"}]
-          (core/send-message adapter queue-name payload headers 0))
+          (core/send-message adapter queue-name {:data payload :headers headers} 0))
         (let [payload {:foo "baz"}
               headers {:x-my-data "no"}]
-          (core/send-message adapter queue-name payload headers 0))
+          (core/send-message adapter queue-name {:data payload :headers headers} 0))
         ;; Filtering on a message with a foo set to bar we should only get one.
         (let [result-filtered (core/read-message adapter queue-name visibility-time quantity {:foo "bar"})
               first-result (first result-filtered)]
@@ -90,7 +90,7 @@
       (core/drop-queue adapter queue-name))
     (testing "delete-message should delete messages"
       (core/create-queue adapter queue-name)
-      (let [msg-id (core/send-message adapter queue-name {:foo "bar"} {:baz "bat"} 1)]
+      (let [msg-id (core/send-message adapter queue-name {:data {:foo "bar"} :headers {:baz "bat"}} 1)]
         (is (true? (core/delete-message adapter queue-name msg-id)))
         (is (nil? (core/read-message adapter queue-name 1 1 {}))))
       (core/drop-queue adapter queue-name))
@@ -101,14 +101,14 @@
     (testing "pop-message should return one message and remove it from queue"
       (core/create-queue adapter queue-name)
       (let [message {:foo "bar"}
-            _ (core/send-message adapter queue-name message nil 0)
+            _ (core/send-message adapter queue-name {:data message :headers {}} 0)
             popped-message (core/pop-message adapter queue-name)]
         (is (s/valid? ::specs/message-record popped-message))
         (is (nil? (core/pop-message adapter queue-name)))))
     (testing "archive-message should move 1 message to an archive table"
       (core/create-queue adapter queue-name)
       (let [message {:foo "bar"}
-            msg-id-1 (core/send-message adapter queue-name message nil 0)
+            msg-id-1 (core/send-message adapter queue-name {:data message :headers {}} 0)
             _ (core/read-message adapter queue-name 30 30 {})
             archive-ids (core/archive-message adapter queue-name [msg-id-1])
             archive (adapter/query adapter (format "SELECT * FROM pgmq.a_%s;" queue-name) [])]
@@ -122,8 +122,8 @@
     (testing "archive-message should move 2 messages to an archive table"
       (core/create-queue adapter queue-name)
       (let [message {:foo "bar"}
-            msg-id-1 (core/send-message adapter queue-name message nil 0)
-            msg-id-2  (core/send-message adapter queue-name message nil 0)
+            msg-id-1 (core/send-message adapter queue-name {:data message :headers {}} 0)
+            msg-id-2  (core/send-message adapter queue-name {:data message :headers {}} 0)
             _ (core/read-message adapter queue-name 30 30 {})
             archive-ids (core/archive-message adapter queue-name [msg-id-1 msg-id-2])
             archive (adapter/query adapter (format "SELECT * FROM pgmq.a_%s;" queue-name) [])]
@@ -136,10 +136,9 @@
         (core/drop-queue adapter queue-name)))
     (testing "send-message-batch should send and return a list of ids"
       (core/create-queue adapter queue-name)
-      (let [payload [{:foo "bar"} {:baz "bat"}]
-            headers [{:x-my-data "yup"}]
-            result (core/send-message-batch adapter queue-name payload headers 0)]
-        (println (core/read-message adapter queue-name 30 100 {}))
+      (let [payload [{:data {:foo "bar"} :headers {:x-my-data "yup"}}
+                     {:data {:baz "bat"} :headers {:x-my-data "nope"}}]
+            result (core/send-message-batch adapter queue-name payload 0)]
         (is (some? result))
         (is (coll? result))
         (is (= result [1 2])))
