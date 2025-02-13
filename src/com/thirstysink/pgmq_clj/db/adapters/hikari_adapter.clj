@@ -10,7 +10,7 @@
            [org.postgresql.util PGobject]
            [java.sql PreparedStatement]))
 
-(defrecord HikariAdapter [datasource]
+(defrecord HikariAdapter [^HikariDataSource datasource]
   adapter/Adapter
 
   ;; Execute a query (e.g., UPDATE, INSERT, DELETE) with optional parameters
@@ -73,7 +73,7 @@
   ;; Close the connection pool
   (close [this]
     (try
-      (.close (:datasource this))
+      (.close ^HikariDataSource (:datasource this))
       (catch Exception e
         (throw (ex-info "Failed to close the datasource"
                         {:type ::close-error}
@@ -92,8 +92,8 @@
 (defn <-pgobject
   "Transform PGobject containing `json` or `jsonb` value to Clojure data."
   [^PGobject v]
-  (let [type  (.getType v)
-        value (.getValue v)]
+  (let [^String type  (.getType v)
+        ^String value (.getValue v)]
     (if (#{"jsonb" "json"} type)
       (try
         (ches/parse-string value true)

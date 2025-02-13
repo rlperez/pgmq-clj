@@ -4,6 +4,8 @@
             [com.thirstysink.pgmq-clj.db.adapter :as adapter]
             [com.thirstysink.pgmq-clj.instrumentation :as inst]))
 
+(set! *warn-on-reflection* true)
+
 (defn create-queue [adapter queue-name]
   (let [create-sql "SELECT pgmq.create(?);"]
     (adapter/execute-one! adapter create-sql [queue-name])))
