@@ -63,7 +63,7 @@
 
 (s/def ::header-value (s/or :string string? :number number? :list (s/coll-of (s/or :string string? :number number?))))
 
-(s/def ::headers (s/map-of ::header-key ::header-value :min-count 0))
+(s/def ::headers (s/nilable (s/map-of ::header-key ::header-value :min-count 0)))
 
 (s/def ::payload-object
   (s/keys :req-un [::data ::headers]))
@@ -118,4 +118,5 @@
   :args (s/cat :adapter ::adapter
                :queue-name ::queue-name
                :payload ::payload-objects
-               :delay ::delay))
+               :delay ::delay)
+  :ret ::msg-ids)
