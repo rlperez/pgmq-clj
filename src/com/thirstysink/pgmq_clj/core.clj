@@ -26,11 +26,8 @@
     (:send result)))
 
 (defn read-message [adapter queue-name visible_time quantity filter]
-  (let [json-filter (if (nil? filter)
-                      "{}"
-                      (ches/generate-string filter))
-        read-sql "SELECT * FROM pgmq.read(?,?::integer,?::integer,?::jsonb);"
-        result (adapter/query adapter read-sql [queue-name visible_time quantity json-filter])]
+  (let [read-sql "SELECT * FROM pgmq.read(?,?::integer,?::integer,?::jsonb);"
+        result (adapter/query adapter read-sql [queue-name visible_time quantity filter])]
     (seq result)))
 
 (defn delete-message [adapter queue-name msg-id]
@@ -61,6 +58,11 @@
         send-sql "SELECT pgmq.send_batch(?,?::jsonb[],?::jsonb[],?::integer)"
         result (adapter/execute! adapter send-sql [queue-name json-payload json-headers delay])]
     (into [] (map :send-batch) result)))
+
+(defn delete-message-batch [adapter queue-name msg-ids]
+  (let [delete-sql "SELECT pgmq.delete(?,?::bigint[]);"
+        result (adapter/execute! adapter delete-sql [queue-name (into-array Long msg-ids)])]
+    (into [] (map :delete) result)))
 
 ;; TODO: Last thing, make sure query and execute are used as needed
 ;; delete-batch
