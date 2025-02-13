@@ -25,7 +25,9 @@
           [{:send-batch 1 {:send-batch 2} {:send-batch 3}}]
           (re-find #"send" sql)
           {:send 1}))
-  (execute! [_ _ _] {})
+  (execute! [_ sql _]
+    (cond (re-find #"delete" sql)
+          [{:delete 1 {:delete 2} {:delete 3}}]))
   (query [_ sql _]
     (cond
       (re-find #"list" sql)
@@ -287,3 +289,36 @@
       (is (thrown-with-msg? clojure.lang.ExceptionInfo
                             #"Call to com.thirstysink.pgmq-clj.core/send-message-batch did not conform to spec."
                             (core/send-message-batch adapter 8008 [{:data {} :headers {}}] "Not an int"))))))
+
+(deftest delete-message-batch-spec-test
+  (let [adapter (->MockAdapter)
+        queue-name "test-queue"]
+    (testing "delete-message-batch spec validation with valid arguments"
+      (is (s/valid? ::specs/msg-ids (core/delete-message-batch adapter queue-name [100]))))
+    (testing "delete-message-batch spec validation with invalid adapter"
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Call to com.thirstysink.pgmq-clj.core/delete-message-batch did not conform to spec."
+                            (core/delete-message-batch nil queue-name [100])))
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Call to com.thirstysink.pgmq-clj.core/delete-message-batch did not conform to spec."
+                            (core/delete-message-batch {} queue-name [100]))))
+    (testing "delete-message-batch spec validation with invalid queue-name"
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Call to com.thirstysink.pgmq-clj.core/delete-message-batch did not conform to spec."
+                            (core/delete-message-batch adapter 8008 [100])))
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Call to com.thirstysink.pgmq-clj.core/delete-message-batch did not conform to spec."
+                            (core/delete-message-batch adapter nil [100]))))
+    (testing "delete-message-batch spec validation with invalid payload"
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Call to com.thirstysink.pgmq-clj.core/delete-message-batch did not conform to spec."
+                            (core/delete-message-batch adapter queue-name nil)))
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Call to com.thirstysink.pgmq-clj.core/delete-message-batch did not conform to spec."
+                            (core/delete-message-batch adapter queue-name 1)))
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Call to com.thirstysink.pgmq-clj.core/delete-message-batch did not conform to spec."
+                            (core/delete-message-batch adapter queue-name [])))
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Call to com.thirstysink.pgmq-clj.core/delete-message-batch did not conform to spec."
+                            (core/delete-message-batch adapter queue-name "not an int seq"))))))

@@ -24,7 +24,9 @@
 
 (s/def ::msg-id (s/and number? pos?))
 
-(s/def ::msg-ids (or (s/coll-of ::msg-id) ::msg-id))
+(s/def ::msg-ids (s/coll-of ::msg-id))
+
+(s/def ::non-empty-msg-ids (s/and ::msg-ids (complement empty?)))
 
 (s/def ::read-ct int?)
 
@@ -119,4 +121,10 @@
                :queue-name ::queue-name
                :payload ::payload-objects
                :delay ::delay)
+  :ret ::msg-ids)
+
+(s/fdef c/delete-message-batch
+  :args (s/cat :adapter ::adapter
+               :queue-name ::queue-name
+               :msg-ids ::non-empty-msg-ids)
   :ret ::msg-ids)
