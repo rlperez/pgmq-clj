@@ -53,7 +53,6 @@
                    (ches/generate-string obj))]
     (str/replace-first (str/replace json-str "]" "}") "[" "{")))
 
-;; Payload - [{headers: {} data: {}}]
 (defn send-message-batch [adapter queue-name payload delay]
   (let [json-payload (->jsonb-str (map :data payload))
         json-headers (->jsonb-str (map :headers payload))
@@ -65,12 +64,6 @@
   (let [delete-sql "SELECT pgmq.delete(?,?::bigint[]);"
         result (adapter/execute! adapter delete-sql [queue-name (into-array Long msg-ids)])]
     (into [] (map :delete) result)))
-
-;; TODO: Last thing, make sure query and execute are used as needed
-;; delete-batch
-;; send-batch
-;; create-partitioned
-;; read-with-polling
 
 (if inst/instrumentation-enabled?
   (inst/enable-instrumentation)
