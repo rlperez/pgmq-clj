@@ -27,7 +27,7 @@
 
          pom {:doc "generates a Maven pom.xml"
               :task (do
-                      (clojure {:dir "."} "-Spom"))}
+                      (clojure {:dir "."} "-T:build write-pom"))}
 
          uberjar   {:doc  "builds the uberjar with shadow-cljs output"
                     :task (do

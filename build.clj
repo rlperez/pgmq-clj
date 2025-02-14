@@ -1,13 +1,22 @@
 (ns build
-  (:require [clojure.string :as string]
+  (:require [clojure.edn :as edn]
+            [clojure.string :as string]
+            ;; [deps-deploy.deps-deploy :as dd]
             [clojure.tools.build.api :as b]))
+
+(defn- get-version []
+  (-> "deps.edn"
+      slurp
+      edn/read-string
+      :info
+      :version))
 
 (def lib 'com.thirstysink/pgmq-clj)
 (def main-cls (string/join "." (filter some? [(namespace lib) (name lib) "core"])))
-(def version (format "0.0.1-SNAPSHOT"))
+(def version (format (get-version)))
 (def target-dir "target")
 (def class-dir (str target-dir "/" "classes"))
-(def uber-file (format "%s/%s-standalone.jar" target-dir (name lib)))
+(def uber-file (format "%s/%s.jar" target-dir (name lib)))
 (def basis (b/create-basis {:project "deps.edn"}))
 
 (defn clean
@@ -16,20 +25,47 @@
   (println (str "Cleaning " target-dir))
   (b/delete {:path target-dir}))
 
-(defn prep [_]
+(defn- pom-template [version]
+  [[:description "A library to simplify working with PGMQ (https://tembo.io/pgmq/)."]
+   [:url "https://github.com/rlperez/pgmq-clj"]
+   [:licenses
+    [:license
+     [:name "MIT License"]
+     [:url "https://opensource.org/license/mit"]]]
+   [:developers
+    [:developer
+     [:name "Rigoberto L. Perez"]]]
+   [:scm
+    [:url "https://github.com/rlperez/pgmq-clj"]
+    [:connection "scm:git:https://github.com/rlperez/pgmq-clj.git"]
+    [:developerConnection "scm:git:ssh://git@github.com/rlperez/pgmq-clj.git"]
+    [:tag (str "v" version)]]])
+
+(defn- jar-opts [opts]
+  (let [version (if (:snapshot opts) (str version "-SNAPSHOT") version)]
+    (assoc opts
+           :lib       lib
+           :version   version
+           :jar-file  (format "target/%s-%s.jar" lib version)
+           :basis     (b/create-basis {})
+           :class-dir class-dir
+           :target    "target"
+           :src-dirs  ["src"]
+           :pom-data  (pom-template version))))
+
+(defn write-pom [opts]
   (println "Writing Pom...")
-  (b/write-pom {:class-dir class-dir
-                :lib lib
-                :version version
-                :basis basis
-                :src-dirs ["src"]})
-  (b/copy-dir {:src-dirs ["src" "resources"]
-               :target-dir class-dir}))
+  (let [jar-opts (jar-opts opts)]
+    (b/write-pom jar-opts)
+    (b/copy-dir {:src-dirs ["src"]
+                 :target-dir class-dir})
+    (b/copy-file {:src "target/classes/META-INF/maven/com.thirstysink/pgmq-clj/pom.xml"
+                  :target "./pom.xml"})))
 
 (defn uber [_]
   (println "Compiling Clojure...")
   (b/compile-clj {:basis basis
-                  :src-dirs ["src/clj" "resources" "env/prod/resources" "env/prod/clj"]
+                  :src-dirs ["src/clj"]
                   :class-dir class-dir})
   (println "Making uberjar...")
   (b/uber {:class-dir class-dir
@@ -37,6 +73,12 @@
            :main main-cls
            :basis basis}))
 
+;; (defn deploy "Deploy the JAR to Clojars." [opts]
+;;   (let [{:keys [jar-file] :as opts} (jar-opts opts)]
+;;     (dd/deploy {:installer :remote :artifact (b/resolve-path jar-file)
+;;                 :pom-file (b/pom-path (select-keys opts [:lib :class-dir]))}))
+;;   opts)
+
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn all [_]
-  (clean nil) (prep nil) (uber nil))
+  (clean nil) (write-pom nil) (uber nil))
