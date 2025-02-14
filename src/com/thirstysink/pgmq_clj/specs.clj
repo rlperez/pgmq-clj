@@ -116,7 +116,7 @@
                :queue-name ::queue-name)
   :ret ::message-record)
 
-(s/fdef c/archive-message
+(s/fdef c/archive-messages
   :args (s/cat :adapter ::adapter
                :queue-name ::queue-name
                :msg-ids ::msg-ids)
