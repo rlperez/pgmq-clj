@@ -2,5 +2,3 @@
   (:require [cheshire.core :as ches]))
 
 (def ->json ches/generate-string)
-
-(def <-json #(ches/parse-string % true))
