@@ -138,8 +138,7 @@
   | Username        | This property sets the default authentication username used when obtaining Connections from the underlying driver.     |
   | Password        | This property sets the default authentication password used when obtaining Connections from the underlying driver.     |
   | MaximumPoolSize | This property controls the maximum size that the pool is allowed to reach, including both idle and in-use connections. |
-  | MinimumIdle     | This property controls the minimum number of idle connections that HikariCP tries to maintain in the pool.             |
-  "
+  | MinimumIdle     | This property controls the minimum number of idle connections that HikariCP tries to maintain in the pool.             |"
   [config]
   (let [datasource (doto (HikariDataSource.)
                      (.setJdbcUrl (:jdbc-url config))

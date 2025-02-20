@@ -103,8 +103,8 @@
   of valid JSON objects. See also [[send-message]].
 
   Example Payloads:
-   - `[{:data {:foo " bar "} :headers {:x-data " bat "}}]`
-   - `[{:data 10002 :headers {}} {:data " feed " :headers {:version " 2 "}} ]`"
+   - `[{:data {:foo \"bar\"} :headers {:x-data \"bat\"}}]`
+   - `[{:data 10002 :headers {}} {:data \"feed\" :headers {:version \"2\"}} ]`"
   [adapter queue-name payload delay]
   (let [json-payload (->jsonb-str (map :data payload))
         json-headers (->jsonb-str (map :headers payload))
