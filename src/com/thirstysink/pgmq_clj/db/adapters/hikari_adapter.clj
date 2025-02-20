@@ -132,8 +132,8 @@
   provides database connection values. See https://github.com/tomekw/hikari-cp
   for additional details on the configuration options.
 
-  | Setting         | Default | Description                                                                                                  |
-  | :-------------- | ------- | :----------------------------------------------------------------------------------------------------------- |
+  | Setting         | Description                                                                                                  |
+  | :-------------- | :----------------------------------------------------------------------------------------------------------- |
   | JdbcUrl         | This property sets the JDBC connection URL.                                                                            |
   | Username        | This property sets the default authentication username used when obtaining Connections from the underlying driver.     |
   | Password        | This property sets the default authentication password used when obtaining Connections from the underlying driver.     |

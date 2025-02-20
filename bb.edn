@@ -21,9 +21,9 @@
                                        api (io/reader api-file-path)
                                        readme (io/writer readme-path)]
                              (.write readme (slurp tmpl))
-                             (.write readme "\n# Documentation\n")
+                             (.write readme "\n\n# Documentation\n")
                              (.write readme (slurp api))
-                             (.write readme "\n# Specs")
+                             (.write readme "\n\n# Specs")
                              (doseq [spec (keys (s/registry))]
                                (.write readme (str "\n### " spec "\n"))
                                (.write readme (str "```clojure\n" (pr-str (s/describe spec)) "\n```\n"))))

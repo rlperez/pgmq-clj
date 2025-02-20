@@ -4,6 +4,7 @@
 # pgmq-clj
 A PGMQ library written in Clojure
 
+
 # Documentation
 # Table of contents
 -  [`com.thirstysink.pgmq-clj.core`](#com.thirstysink.pgmq-clj.core) 
@@ -276,8 +277,8 @@ Create a new HikariAdapter instance. The argument config
   provides database connection values. See https://github.com/tomekw/hikari-cp
   for additional details on the configuration options.
 
-  | Setting         | Default | Description                                                                                                  |
-  | :-------------- | ------- | :----------------------------------------------------------------------------------------------------------- |
+  | Setting         | Description                                                                                                  |
+  | :-------------- | :----------------------------------------------------------------------------------------------------------- |
   | JdbcUrl         | This property sets the JDBC connection URL.                                                                            |
   | Username        | This property sets the default authentication username used when obtaining Connections from the underlying driver.     |
   | Password        | This property sets the default authentication password used when obtaining Connections from the underlying driver.     |
@@ -339,6 +340,7 @@ Enables `clojure.specs.alpha` specs instrumentation.
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/json.clj#L4-L4">Source</a></sub></p>
 
 -----
+
 
 # Specs
 ### :com.thirstysink.pgmq-clj.specs/message-records
