@@ -32,8 +32,8 @@
   indicates it may be read immediately.
 
   Example Payloads:
-   - `[{:data {:foo " bad "} :headers {:x-data " baz "}}]`
-   - `[{:data 10022 :headers {}} {:data " feed " :headers {:version " 3 "}} ]`"
+  - `[{:data {:foo \"bad\"} :headers {:x-data \"baz\"}}]`
+  - `[{:data 10022 :headers {}} {:data \"feed\" :headers {:version \"3\"}}]`"
   [adapter queue-name payload delay]
   (let [json-payload (ches/generate-string (:data payload))
         json-headers (ches/generate-string (:headers payload))
