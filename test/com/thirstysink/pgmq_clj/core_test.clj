@@ -108,24 +108,24 @@
             popped-message (core/pop-message adapter queue-name)]
         (is (s/valid? ::specs/message-record popped-message))
         (is (nil? (core/pop-message adapter queue-name)))))
-    (testing "archive-message should move 1 message to an archive table"
+    (testing "archive-messages should move 1 message to an archive table"
       (core/create-queue adapter queue-name)
       (let [message {:foo "bar"}
             msg-id-1 (core/send-message adapter queue-name {:data message :headers {}} 0)
             _ (core/read-message adapter queue-name 30 30 {})
-            archive-ids (core/archive-message adapter queue-name [msg-id-1])
+            archive-ids (core/archive-messages adapter queue-name [msg-id-1])
             archive (adapter/query adapter (format "SELECT * FROM pgmq.a_%s;" queue-name) [])]
         (is (s/valid? ::specs/msg-ids archive-ids))
         (is (= 1 (count-entries-with-msg-id archive msg-id-1)))
         (is (= (map :msg-id archive) archive-ids))
         (core/drop-queue adapter queue-name)))
-    (testing "archive-message should move 2 messages to an archive table"
+    (testing "archive-messages should move 2 messages to an archive table"
       (core/create-queue adapter queue-name)
       (let [message {:foo "bar"}
             msg-id-1 (core/send-message adapter queue-name {:data message :headers {}} 0)
             msg-id-2  (core/send-message adapter queue-name {:data message :headers {}} 0)
             _ (core/read-message adapter queue-name 30 30 {})
-            archive-ids (core/archive-message adapter queue-name [msg-id-1 msg-id-2])
+            archive-ids (core/archive-messages adapter queue-name [msg-id-1 msg-id-2])
             archive (adapter/query adapter (format "SELECT * FROM pgmq.a_%s;" queue-name) [])]
         (is (s/valid? ::specs/msg-ids archive-ids))
         (is (= 1 (count-entries-with-msg-id archive msg-id-1)))

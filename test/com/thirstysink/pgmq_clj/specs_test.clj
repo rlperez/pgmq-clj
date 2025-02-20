@@ -31,7 +31,7 @@
   (query [_ sql _]
     (cond
       (re-find #"list" sql)
-      [{:queue-name "my-queue"
+      [{:queue-name "my_queue"
         :is-partitioned false
         :is-unlogged true
         :created-at sql-time}]
@@ -69,12 +69,12 @@
       (is (thrown-with-msg?
            clojure.lang.ExceptionInfo
            expected-msg
-           (core/create-queue nil "test-queue"))))
+           (core/create-queue nil "test_queue"))))
     (testing "create-queue throws exception with an invalid adapter"
       (is (thrown-with-msg?
            clojure.lang.ExceptionInfo
            expected-msg
-           (core/create-queue [] "test-queue"))))
+           (core/create-queue [] "test_queue"))))
     (testing "create-queue throws exception with an empty queue-name"
       (is (thrown-with-msg?
            clojure.lang.ExceptionInfo
@@ -98,12 +98,12 @@
       (is (thrown-with-msg?
            clojure.lang.ExceptionInfo
            expected-msg
-           (core/drop-queue nil "test-queue"))))
+           (core/drop-queue nil "test_queue"))))
     (testing "drop-queue throws exception with an invalid adapter"
       (is (thrown-with-msg?
            clojure.lang.ExceptionInfo
            expected-msg
-           (core/drop-queue [] "test-queue"))))
+           (core/drop-queue [] "test_queue"))))
     (testing "drop-queue throws exception with an empty queue-name"
       (is (thrown-with-msg?
            clojure.lang.ExceptionInfo
@@ -122,7 +122,7 @@
 
 (deftest read-message-spec-test
   (let [adapter (->MockAdapter)
-        queue-name "test-queue"]
+        queue-name "test_queue"]
     (testing "read-message spec validation valid arguments"
       (is (seq? (core/read-message adapter queue-name 30 100 {})))
       (is (seq? (core/read-message adapter queue-name 30 100 {:foo "bar"}))))
@@ -139,7 +139,16 @@
                             (core/read-message adapter 8008 10 3 {})))
       (is (thrown-with-msg? clojure.lang.ExceptionInfo
                             #"Call to com.thirstysink.pgmq-clj.core/read-message did not conform to spec"
-                            (core/read-message adapter nil 10 3 {}))))
+                            (core/read-message adapter nil 10 3 {})))
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Call to com.thirstysink.pgmq-clj.core/read-message did not conform to spec"
+                            (core/read-message adapter "test-queue!" 10 3 {})))
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Call to com.thirstysink.pgmq-clj.core/read-message did not conform to spec"
+                            (core/read-message adapter "test-queue" 10 3 {})))
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Call to com.thirstysink.pgmq-clj.core/read-message did not conform to spec"
+                            (core/read-message adapter "1__queue" 10 3 {}))))
     (testing "read-message spec validates invalid visibility_time"
       (is (thrown-with-msg? clojure.lang.ExceptionInfo
                             #"Call to com.thirstysink.pgmq-clj.core/read-message did not conform to spec"
@@ -163,7 +172,7 @@
 
 (deftest send-message-spec-test
   (let [adapter (->MockAdapter)
-        queue-name "test-queue"]
+        queue-name "test_queue"]
     (testing "send-message spec validation valid arguments"
       (is (s/valid? ::specs/msg-id (core/send-message adapter queue-name {:data {:foo "bar"} :headers {:baz "bat"}} 0)))
       (is (s/valid? ::specs/msg-id (core/send-message adapter queue-name {:headers {} :data {}} 0)))
@@ -199,7 +208,7 @@
 
 (deftest delete-message-spec-test
   (let [adapter (->MockAdapter)
-        queue-name "test-queue"]
+        queue-name "test_queue"]
     (testing "delete-message spec validation with valid arguments"
       (is (s/valid? boolean? (core/delete-message adapter queue-name 100))))
     (testing "delete-message spec validation with invalid adapter"
@@ -235,7 +244,7 @@
 
 (deftest pop-message-test
   (let [adapter (->MockAdapter)
-        queue-name "test-queue"]
+        queue-name "test_queue"]
     (testing "Valid arguments"
       (let [popped-message (core/pop-message adapter queue-name)]
         (is (s/valid? ::specs/message-record popped-message))
@@ -253,7 +262,7 @@
 
 (deftest send-message-batch-spec-test
   (let [adapter (->MockAdapter)
-        queue-name "test-queue"]
+        queue-name "_test_queue"]
     (testing "send-message-batch spec validation valid arguments"
       (is (s/valid? ::specs/msg-ids (core/send-message-batch adapter queue-name [{:data {:foo "bar"} :headers {:baz "bat"}}] 0)))
       (is (s/valid? ::specs/msg-ids (core/send-message-batch adapter queue-name [{:data {} :headers {}}] 0)))
@@ -292,7 +301,7 @@
 
 (deftest delete-message-batch-spec-test
   (let [adapter (->MockAdapter)
-        queue-name "test-queue"]
+        queue-name "test_queue_2"]
     (testing "delete-message-batch spec validation with valid arguments"
       (is (s/valid? ::specs/msg-ids (core/delete-message-batch adapter queue-name [100]))))
     (testing "delete-message-batch spec validation with invalid adapter"

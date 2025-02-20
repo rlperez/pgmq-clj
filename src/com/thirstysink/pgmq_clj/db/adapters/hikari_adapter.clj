@@ -10,11 +10,11 @@
            [org.postgresql.util PGobject]
            [java.sql PreparedStatement]))
 
-(defrecord HikariAdapter [datasource]
+(defrecord HikariAdapter [^HikariDataSource datasource]
   adapter/Adapter
 
-  ;; Execute a query (e.g., UPDATE, INSERT, DELETE) with optional parameters
-  (execute-one! [this sql params]
+  (execute-one!
+    [this sql params]
     (try
       (jdbc/execute-one!
        (:datasource this)
@@ -44,7 +44,6 @@
                          :params params}
                         e)))))
 
-  ;; Execute a SELECT query with optional parameters
   (query [this sql params]
     (try
       (jdbc/execute!
@@ -60,7 +59,6 @@
                          :params params}
                         e)))))
 
-  ;; Perform a transactional operation
   (with-transaction [this f]
     (try
       (jdbc/with-transaction [tx (:datasource this)]
@@ -70,10 +68,9 @@
                         {:type :transaction-error}
                         e)))))
 
-  ;; Close the connection pool
   (close [this]
     (try
-      (.close (:datasource this))
+      (.close ^HikariDataSource (:datasource this))
       (catch Exception e
         (throw (ex-info "Failed to close the datasource"
                         {:type ::close-error}
@@ -92,8 +89,8 @@
 (defn <-pgobject
   "Transform PGobject containing `json` or `jsonb` value to Clojure data."
   [^PGobject v]
-  (let [type  (.getType v)
-        value (.getValue v)]
+  (let [^String type  (.getType v)
+        ^String value (.getValue v)]
     (if (#{"jsonb" "json"} type)
       (try
         (ches/parse-string value true)
@@ -121,13 +118,28 @@
   (read-column-by-index [^java.sql.Timestamp v _2 _3]
     (.toInstant v)))
 
-(defn ensure-pgmq-extension [adapter]
+(defn ensure-pgmq-extension
+  "Checks the database to verify that the `pgmq` extension is installed.
+  If it is not then it will throw an exception."
+  [adapter]
   (let [check-extension-sql "SELECT extname FROM pg_extension WHERE extname = 'pgmq';"
         extension-check (adapter/query adapter check-extension-sql [])]
     (when (empty? extension-check)
       (throw (ex-info "PGMQ extension is not installed." {:cause :extension-missing})))))
 
-(defn make-hikari-adapter [config]
+(defn make-hikari-adapter
+  "Create a new HikariAdapter instance. The argument config
+  provides database connection values. See https://github.com/tomekw/hikari-cp
+  for additional details on the configuration options.
+
+  | Setting         | Description                                                                                                  |
+  | :-------------- | :----------------------------------------------------------------------------------------------------------- |
+  | JdbcUrl         | This property sets the JDBC connection URL.                                                                            |
+  | Username        | This property sets the default authentication username used when obtaining Connections from the underlying driver.     |
+  | Password        | This property sets the default authentication password used when obtaining Connections from the underlying driver.     |
+  | MaximumPoolSize | This property controls the maximum size that the pool is allowed to reach, including both idle and in-use connections. |
+  | MinimumIdle     | This property controls the minimum number of idle connections that HikariCP tries to maintain in the pool.             |"
+  [config]
   (let [datasource (doto (HikariDataSource.)
                      (.setJdbcUrl (:jdbc-url config))
                      (.setUsername (:username config))

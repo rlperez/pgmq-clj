@@ -75,7 +75,6 @@
              clojure.lang.ExceptionInfo
              #"Error executing statement"
              (adapter/execute! adapter "UPDATE test SET value = ?" [42]))))))
-
   (testing "HikariAdapter.query throws exception"
     (let [mock-datasource (atom nil)
           adapter (->HikariAdapter mock-datasource)]

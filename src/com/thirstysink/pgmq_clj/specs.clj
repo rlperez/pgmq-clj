@@ -5,7 +5,13 @@
 
 (s/def ::adapter #(satisfies? adapter/Adapter %))
 
-(s/def ::queue-name (s/and string? not-empty))
+(defn- valid-queue-name? [name]
+  (and (string? name)
+       (not-empty name)
+       (re-matches #"^[a-zA-Z_][a-zA-Z0-9_]*$" name)
+       (<= (count name) 63)))
+
+(s/def ::queue-name valid-queue-name?)
 
 (s/def ::visibility_time (s/and int? #(>= % 0)))
 

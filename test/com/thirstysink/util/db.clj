@@ -13,16 +13,16 @@
           (.asCompatibleSubstituteFor "postgres")))
       (.withInitScript "sql/init.sql"))))
 
-(defn start-postgres-container [container]
+(defn start-postgres-container [^PostgreSQLContainer container]
   (.start container)
   {:jdbc-url (.getJdbcUrl container)
    :username (.getUsername container)
    :password (.getPassword container)})
 
-(defn setup-adapter [container]
+(defn setup-adapter [^PostgreSQLContainer container]
   (hikari/make-hikari-adapter (start-postgres-container container)))
 
-(defn stop-postgres-container [container]
+(defn stop-postgres-container [^PostgreSQLContainer container]
   (.stop container))
 
 (defn reset-table [adapter table_name]
