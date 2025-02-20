@@ -7,7 +7,7 @@
                     [clojure.spec.alpha :as s]
                     [com.thirstysink.pgmq-clj.specs])
          quickdoc {:doc "Invoke quickdoc"
-                   :extra-deps {io.github.borkdude/quickdoc {:git/sha "7c8bef54eda28367193ec433af01bb940114f012"}}
+                   :extra-deps {io.github.borkdude/quickdoc {:git/sha "3aad5fde31c30bdb84554ff5d2d0263fd1743f04"}}
                    :task (let [api-file-path "API.md"
                                readme-tmpl-path "README.md.tmpl"
                                readme-path "README.md"
