@@ -1,34 +1,12 @@
 {:min-bb-version "0.8.156"
+ :paths ["src" "."]
  :deps  {failjure/failjure {:mvn/version "2.3.0"}}
- :tasks {:requires ([babashka.fs :as fs]
-                    [babashka.tasks :refer [shell]]
-                    [clojure.edn :as edn]
-                    [clojure.java.io :as io]
-                    [clojure.spec.alpha :as s]
-                    [com.thirstysink.pgmq-clj.specs])
-         quickdoc {:doc "Invoke quickdoc"
+ :require [tasks.document]
+ :tasks {:require ([babashka.fs :as fs]
+                   [babashka.tasks :refer [shell]])
+         document {:doc "generate documentation"
                    :extra-deps {io.github.borkdude/quickdoc {:git/sha "3aad5fde31c30bdb84554ff5d2d0263fd1743f04"}}
-                   :task (let [api-file-path "API.md"
-                               readme-tmpl-path "README.md.tmpl"
-                               readme-path "README.md"
-                               readme-bkp-path (str readme-path ".bkp")
-                               specs-path "src/com/thirstysink/pgmq_clj/specs.clj"
-                               specs (keys (s/registry))]
-                           (exec 'quickdoc.api/quickdoc)
-                           (io/copy (io/file readme-path) (io/file readme-bkp-path))
-                           (io/delete-file (io/file readme-path))
-                           (with-open [tmpl (io/reader readme-tmpl-path)
-                                       api (io/reader api-file-path)
-                                       readme (io/writer readme-path)]
-                             (.write readme (slurp tmpl))
-                             (.write readme "\n\n# Documentation\n")
-                             (.write readme (slurp api))
-                             (.write readme "\n\n# Specs")
-                             (doseq [spec (keys (s/registry))]
-                               (.write readme (str "\n### " spec "\n"))
-                               (.write readme (str "```clojure\n" (pr-str (s/describe spec)) "\n```\n"))))
-                           (io/delete-file (io/file api-file-path))
-                           (io/delete-file (io/file readme-bkp-path)))}
+                   :task (exec 'tasks.document/-main)}
          run       {:doc  "starts the app"
                     :task (clojure {:dir "."} "-M:dev")
                     :override-builtin true}
@@ -62,5 +40,5 @@
                     :task (do
                             (clojure {:dir "."} "-M:upgrade"))}
 
-         format    {:doc  "Formats codebase"
+         format    {:doc  "formats codebase"
                     :task (shell {:dir "src"} "cljfmt fix")}}}
