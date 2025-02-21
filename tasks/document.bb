@@ -1,38 +1,43 @@
 (ns tasks.document
-  (:require [clojure.java.io :as io]
+  (:require [babashka.fs :as fs]
             [clojure.spec.alpha :as s]
             [babashka.tasks :refer [exec]]
             [com.thirstysink.pgmq-clj.specs]))
 
-(defn- write-specs [readme-buffer]
+(defn- write-specs [readme-file]
+  (println "Writing specs...")
   (let [specs (keys (s/registry))]
-    (.write readme-buffer "\n\n# Specs")
+    (spit readme-file "\n\n# Specs" :append true)
     (doseq [spec specs]
-      (.write readme-buffer (str "\n### " spec "\n"))
-      (.write readme-buffer (str "```clojure-n" (pr-str (s/describe spec)) "\n```\n")))))
+      (spit readme-file (str "\n### " spec "\n") :append true)
+      (spit readme-file (str "```clojure\n" (pr-str (s/describe spec)) "\n```\n") :append true))))
 
-(defn- write-docs [readme-buffer docs-buffer]
-  (.write readme-buffer "\n\n# Documentation\n")
-  (.write readme-buffer (slurp docs-buffer)))
+(defn- write-docs [readme-file docs-buffer]
+  (println "Writing documentation...")
+  (spit readme-file "\n\n# Documentation\n" :append true)
+  (spit readme-file docs-buffer :append true))
 
 (defn- delete-files [files]
+  (println (str "Deleting files " files "..."))
   (doseq [file files]
-    (io/delete-file file)))
+    (fs/delete file)))  ; Ensure proper deletion of the files
 
 (defn- build-readme [template-path readme-path docs-path]
+  (println (str "Building " readme-path "..."))
   (let [bkp-path (str readme-path ".bkp")
-        readme-file (io/file readme-path)
-        readme-bkp-file (io/file bkp-path)]
-    (io/copy readme-file readme-bkp-file)
-    (io/delete-file readme-file)
-    (with-open [tmpl-buffer (io/reader template-path)
-                docs-buffer (io/reader docs-path)
-                readme-buffer (io/writer readme-file)]
-      (.write readme-buffer (slurp tmpl-buffer))
-      (write-docs readme-buffer docs-buffer)
-      (write-specs readme-buffer))))
+        readme-file (fs/file readme-path)
+        readme-bkp-file (fs/file bkp-path)
+        tmpl-content (slurp template-path)
+        docs-content (slurp docs-path)]
+    (fs/delete-if-exists readme-bkp-file)
+    (fs/copy readme-file readme-bkp-file)
+    (fs/delete readme-file)
+    (spit readme-file tmpl-content)      ; Write template content to readme
+    (write-docs readme-file docs-content) ; Write documentation content to readme
+    (write-specs readme-file)))          ; Write specs to readme
 
 (defn- build-documentation []
+  (println "Generating documentation...")
   (let [documents-path "API.md"
         readme-tmpl-path "README.md.tmpl"
         readme-path "README.md"
@@ -42,6 +47,5 @@
     (delete-files [documents-path readme-bkp-path])))
 
 (defn -main [& _]
-  (println "Generating documentation...")
   (build-documentation)
   (println "Documentation complete!"))
