@@ -47,21 +47,26 @@
   received when making a read request.
 
   Here are some examples of how this conditional works:
-    If conditional is an empty JSON object ('{}'::jsonb), the condition always evaluates to TRUE, and all messages are considered matching.
+  If conditional is an empty JSON object ('{}'::jsonb), the condition always evaluates to TRUE, and all messages are considered matching.
 
-    If conditional is a JSON object with a single key-value pair, such as {'key': 'value'}, the condition checks if the message column contains a JSON object with the same key-value pair. For example:
-        message = {'key': 'value', 'other_key': 'other_value'}: matches
-        message = {'other_key': 'other_value'}: does not match
 
-    If conditional is a JSON object with multiple key-value pairs, such as {'key1': 'value1', 'key2': 'value2'}, the condition checks if the message column contains a JSON object with all the specified key-value pairs. For example:
-        message = {'key1': 'value1', 'key2': 'value2', 'other_key': 'other_value'}: matches
-        message = {'key1': 'value1', 'other_key': 'other_value'}: does not match
+  If conditional is a JSON object with a single key-value pair, such as {'key': 'value'}, the condition checks if the message column contains a JSON object with the same key-value pair. For example:
+  ```
+  message = {'key': 'value', 'other_key': 'other_value'}: // matches
+  message = {'other_key': 'other_value'}: // does not match
+  ```
+
+  If conditional is a JSON object with multiple key-value pairs, such as {'key1': 'value1', 'key2': 'value2'}, the condition checks if the message column contains a JSON object with all the specified key-value pairs. For example:
+  ```
+  message = {'key1': 'value1', 'key2': 'value2', 'other_key': 'other_value'}: // matches
+  message = {'key1': 'value1', 'other_key': 'other_value'}: // does not match
+  ```
 
   Some examples of conditional JSONB values and their effects on the query:
-    {}: matches all messages
-    {'type': 'error'}: matches messages with a type key equal to 'error'
-    {'type': 'error', 'severity': 'high'}: matches messages with both type equal to 'error' and severity equal to 'high'
-    {'user_id': 123}: matches messages with a user_id key equal to 123"
+  * `{}`: matches all messages
+  * `{'type': 'error'}`: matches messages with a type key equal to 'error'
+  * `{'type': 'error', 'severity': 'high'}`: matches messages with both type equal to 'error' and severity equal to 'high'
+  * `{'user_id': 123}`: matches messages with a user_id key equal to 123"
   [adapter queue-name visible_time quantity filter]
   (let [read-sql "SELECT * FROM pgmq.read(?,?::integer,?::integer,?::jsonb);"
         result (adapter/query adapter read-sql [queue-name visible_time quantity filter])]

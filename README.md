@@ -51,16 +51,18 @@ A PGMQ library written in Clojure
 
 (archive-messages adapter queue-name msg-ids)
 ```
+Function.
 
 Archives messages `msg-ids` in a queue named `queue-name`. This will remove the message from
   `queue-name` and place it in a archive table which is named `a_{queue-name}`.
-<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L86-L92">Source</a></sub></p>
+<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L91-L97">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.core/create-queue">`create-queue`</a><a name="com.thirstysink.pgmq-clj.core/create-queue"></a>
 ``` clojure
 
 (create-queue adapter queue-name)
 ```
+Function.
 
 Create a queue named `queue-name`.
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L9-L13">Source</a></sub></p>
@@ -70,24 +72,27 @@ Create a queue named `queue-name`.
 
 (delete-message adapter queue-name msg-id)
 ```
+Function.
 
 Permanently deletes message with id `msg-id` in the queue named `queue-name`.
-<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L70-L75">Source</a></sub></p>
+<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L75-L80">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.core/delete-message-batch">`delete-message-batch`</a><a name="com.thirstysink.pgmq-clj.core/delete-message-batch"></a>
 ``` clojure
 
 (delete-message-batch adapter queue-name msg-ids)
 ```
+Function.
 
 Deletes all `msg-ids` messages in queue `queue-name`.
-<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L115-L120">Source</a></sub></p>
+<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L120-L125">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.core/drop-queue">`drop-queue`</a><a name="com.thirstysink.pgmq-clj.core/drop-queue"></a>
 ``` clojure
 
 (drop-queue adapter queue-name)
 ```
+Function.
 
 Drop queue named `queue-name`.
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L15-L20">Source</a></sub></p>
@@ -97,6 +102,7 @@ Drop queue named `queue-name`.
 
 (list-queues adapter)
 ```
+Function.
 
 List all queues.
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L22-L27">Source</a></sub></p>
@@ -106,45 +112,53 @@ List all queues.
 
 (pop-message adapter queue-name)
 ```
+Function.
 
 Pops one message from the queue named `queue-name`. The side-effect of
   this function is equivalent to reading and deleting a message. See also
   [[read-message]] and [[delete-message]].
-<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L77-L84">Source</a></sub></p>
+<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L82-L89">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.core/read-message">`read-message`</a><a name="com.thirstysink.pgmq-clj.core/read-message"></a>
 ``` clojure
 
 (read-message adapter queue-name visible_time quantity filter)
 ```
+Function.
 
 Read a `quantity` of messages from `queue-name` marking them invisible for
   `visible_time` seconds. This function supports the ability to `filter` messages
   received when making a read request.
 
   Here are some examples of how this conditional works:
-    If conditional is an empty JSON object ('{}'::jsonb), the condition always evaluates to TRUE, and all messages are considered matching.
+  If conditional is an empty JSON object ('{}'::jsonb), the condition always evaluates to TRUE, and all messages are considered matching.
 
-    If conditional is a JSON object with a single key-value pair, such as {'key': 'value'}, the condition checks if the message column contains a JSON object with the same key-value pair. For example:
-        message = {'key': 'value', 'other_key': 'other_value'}: matches
-        message = {'other_key': 'other_value'}: does not match
 
-    If conditional is a JSON object with multiple key-value pairs, such as {'key1': 'value1', 'key2': 'value2'}, the condition checks if the message column contains a JSON object with all the specified key-value pairs. For example:
-        message = {'key1': 'value1', 'key2': 'value2', 'other_key': 'other_value'}: matches
-        message = {'key1': 'value1', 'other_key': 'other_value'}: does not match
+  If conditional is a JSON object with a single key-value pair, such as {'key': 'value'}, the condition checks if the message column contains a JSON object with the same key-value pair. For example:
+  ```
+  message = {'key': 'value', 'other_key': 'other_value'}: // matches
+  message = {'other_key': 'other_value'}: // does not match
+  ```
+
+  If conditional is a JSON object with multiple key-value pairs, such as {'key1': 'value1', 'key2': 'value2'}, the condition checks if the message column contains a JSON object with all the specified key-value pairs. For example:
+  ```
+  message = {'key1': 'value1', 'key2': 'value2', 'other_key': 'other_value'}: // matches
+  message = {'key1': 'value1', 'other_key': 'other_value'}: // does not match
+  ```
 
   Some examples of conditional JSONB values and their effects on the query:
-    {}: matches all messages
-    {'type': 'error'}: matches messages with a type key equal to 'error'
-    {'type': 'error', 'severity': 'high'}: matches messages with both type equal to 'error' and severity equal to 'high'
-    {'user_id': 123}: matches messages with a user_id key equal to 123
-<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L44-L68">Source</a></sub></p>
+  * `{}`: matches all messages
+  * `{'type': 'error'}`: matches messages with a type key equal to 'error'
+  * `{'type': 'error', 'severity': 'high'}`: matches messages with both type equal to 'error' and severity equal to 'high'
+  * `{'user_id': 123}`: matches messages with a user_id key equal to 123
+<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L44-L73">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.core/send-message">`send-message`</a><a name="com.thirstysink.pgmq-clj.core/send-message"></a>
 ``` clojure
 
 (send-message adapter queue-name payload delay)
 ```
+Function.
 
 Send one message to a queue `queue-name` with a `payload`
   that will not be read for `delay` seconds. A `delay` of 0
@@ -160,6 +174,7 @@ Send one message to a queue `queue-name` with a `payload`
 
 (send-message-batch adapter queue-name payload delay)
 ```
+Function.
 
 Sends `payload` to the queue named `queue-name` as a collection of messages
   that cannot be read for `delay` seconds. The payload should be a sequence
@@ -168,7 +183,7 @@ Sends `payload` to the queue named `queue-name` as a collection of messages
   Example Payloads:
    - `[{:data {:foo "bar"} :headers {:x-data "bat"}}]`
    - `[{:data 10002 :headers {}} {:data "feed" :headers {:version "2"}} ]`
-<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L100-L113">Source</a></sub></p>
+<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L105-L118">Source</a></sub></p>
 
 -----
 # <a name="com.thirstysink.pgmq-clj.db.adapter">com.thirstysink.pgmq-clj.db.adapter</a>
@@ -189,6 +204,7 @@ Sends `payload` to the queue named `queue-name` as a collection of messages
 
 (close this)
 ```
+Function.
 
 Performs database connection cleanup.
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/db/adapter.clj#L8-L8">Source</a></sub></p>
@@ -198,6 +214,7 @@ Performs database connection cleanup.
 
 (execute! this sql params)
 ```
+Function.
 
 Execute a SQL statement with 0 or more return values.
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/db/adapter.clj#L5-L5">Source</a></sub></p>
@@ -207,6 +224,7 @@ Execute a SQL statement with 0 or more return values.
 
 (execute-one! this sql params)
 ```
+Function.
 
 Execute a SQL statement with 0 or 1 return values.
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/db/adapter.clj#L4-L4">Source</a></sub></p>
@@ -216,6 +234,7 @@ Execute a SQL statement with 0 or 1 return values.
 
 (query this sql params)
 ```
+Function.
 
 Query the database and return results.
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/db/adapter.clj#L6-L6">Source</a></sub></p>
@@ -225,6 +244,7 @@ Query the database and return results.
 
 (with-transaction this f)
 ```
+Function.
 
 Wrap a function in a database transaction.
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/db/adapter.clj#L7-L7">Source</a></sub></p>
@@ -242,6 +262,7 @@ Wrap a function in a database transaction.
 
 (->pgobject x)
 ```
+Function.
 
 Transforms Clojure data to a PGobject that contains the data as
   JSON. PGObject type defaults to `jsonb` but can be changed via
@@ -253,6 +274,7 @@ Transforms Clojure data to a PGobject that contains the data as
 
 (<-pgobject v)
 ```
+Function.
 
 Transform PGobject containing `json` or `jsonb` value to Clojure data.
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/db/adapters/hikari_adapter.clj#L89-L99">Source</a></sub></p>
@@ -262,6 +284,7 @@ Transform PGobject containing `json` or `jsonb` value to Clojure data.
 
 (ensure-pgmq-extension adapter)
 ```
+Function.
 
 Checks the database to verify that the `pgmq` extension is installed.
   If it is not then it will throw an exception.
@@ -272,6 +295,7 @@ Checks the database to verify that the `pgmq` extension is installed.
 
 (make-hikari-adapter config)
 ```
+Function.
 
 Create a new HikariAdapter instance. The argument config
   provides database connection values. See https://github.com/tomekw/hikari-cp
@@ -300,6 +324,7 @@ Create a new HikariAdapter instance. The argument config
 (disable-instrumentation)
 (disable-instrumentation ns)
 ```
+Function.
 
 Disables `clojure.specs.alpha` specs instrumentation.
   [Learn more](https://github.com/clojure/spec.alpha). If
@@ -313,6 +338,7 @@ Disables `clojure.specs.alpha` specs instrumentation.
 (enable-instrumentation)
 (enable-instrumentation ns)
 ```
+Function.
 
 Enables `clojure.specs.alpha` specs instrumentation.
   [Learn more](https://github.com/clojure/spec.alpha). If
