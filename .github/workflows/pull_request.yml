@@ -1,0 +1,65 @@
+name: Clojure CI Pull Request
+
+on:
+  pull_request:
+    branches: ["master"]
+
+jobs:
+  build:
+    if: github.actor != 'github-actions'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        testcontainer:
+          # - quay.io/tembo/pg15-pgmq
+          # - quay.io/tembo/pg16-pgmq
+          - quay.io/tembo/pg17-pgmq
+    permissions:
+      contents: write
+    steps:
+      - name: Run common build steps
+        uses: ./.github/actions/common-build
+
+      - name: Run common test steps
+        uses: ./.github/actions/common-test
+        with:
+          testcontainer: ${{ matrix.testcontainer }}
+          codecov: ${{ matrix.testcontainer == 'quay.io/tembo/pg17-pgmq' && 'true' || 'false' }}
+
+      - name: Generate documentation if changed
+        if: matrix.testcontainer == 'quay.io/tembo/pg17-pgmq'
+        env:
+          CI_COMMIT_MESSAGE: "docs: Automated update after README.md change"
+          CI_COMMIT_AUTHOR: GitHub Actions Bot
+        run: |
+          bb document
+          echo "Checking for document changes..."
+          git diff --exit-code --quiet README.md || (
+          echo "Documentation was updated. Committing changes..."
+
+          # Get current branch
+          CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          echo "CURRENT_BRANCH $CURRENT_BRANCH"
+
+          # Ensure we're on the correct branch
+          git checkout $CURRENT_BRANCH
+
+          # Set the commit author info
+          git config --global user.name "${{ env.CI_COMMIT_AUTHOR }}"
+          git config --global user.email "username@users.noreply.github.com"
+
+          # Fetch the latest changes from the origin to make sure we are up to date
+          git fetch origin
+
+          # Stage and commit changes to README.md
+          git add README.md
+
+          CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          echo "CURRENT_BRANCH $CURRENT_BRANCH"
+
+          git status
+          git commit -m "${{ env.CI_COMMIT_MESSAGE }}"
+
+          # Push changes to the same branch
+          git push origin $CURRENT_BRANCH
+          )
