@@ -1,3 +1,5 @@
+#!/usr/bin/env bb
+
 (ns tasks.document
   (:require [babashka.fs :as fs]
             [clojure.spec.alpha :as s]
@@ -20,7 +22,7 @@
 (defn- delete-files [files]
   (println (str "Deleting files " files "..."))
   (doseq [file files]
-    (fs/delete file)))  ; Ensure proper deletion of the files
+    (fs/delete file)))
 
 (defn- build-readme [template-path readme-path docs-path]
   (println (str "Building " readme-path "..."))
@@ -32,9 +34,9 @@
     (fs/delete-if-exists readme-bkp-file)
     (fs/copy readme-file readme-bkp-file)
     (fs/delete readme-file)
-    (spit readme-file tmpl-content)      ; Write template content to readme
-    (write-docs readme-file docs-content) ; Write documentation content to readme
-    (write-specs readme-file)))          ; Write specs to readme
+    (spit readme-file tmpl-content)
+    (write-docs readme-file docs-content)
+    (write-specs readme-file)))
 
 (defn- build-documentation []
   (println "Generating documentation...")
