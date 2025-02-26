@@ -13,9 +13,11 @@ jobs:
     strategy:
       matrix:
         testcontainer:
-          - quay.io/tembo/pg15-pgmq
-          - quay.io/tembo/pg16-pgmq
+          # - quay.io/tembo/pg15-pgmq
+          # - quay.io/tembo/pg16-pgmq
           - quay.io/tembo/pg17-pgmq
+    permissions:
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -43,23 +45,36 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: rlperez/pgmq-clj
           files: target/coverage/codecov.json
-      - name: Check if README.md was changed and commit if necessary
+      - name: Generate documentation if changed
         if: github.ref != 'refs/heads/master' && matrix.testcontainer == 'quay.io/tembo/pg17-pgmq'
+        env:
+          CI_COMMIT_MESSAGE: "docs: Automated update after README.md change"
+          CI_COMMIT_AUTHOR: GitHub Actions Bot
         run: |
           bb document
           echo "Checking for document changes..."
           git diff --exit-code --quiet README.md || (
-            echo "Documentation was updated. Committing changes."
-            git config user.name "GitHub Actions Bot"
-            git config user.email "<>"
+          echo "Documentation was updated. Committing changes..."
 
-            CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-            git checkout $CURRENT_BRANCH
-            git remote set-url origin https://github-actions:${{ secrets.GIT_ACCESS_TOKEN }}@github.com/rlperez/pgmq-clj.git
+          # Get current branch
+          CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          echo "CURRENT_BRANCH $CURRENT_BRANCH"
 
-            git add README.md
-            git commit -m "docs: Automated update after README.md change"
-            git push origin $CURRENT_BRANCH
+          # Ensure we're on the correct branch
+          git checkout $CURRENT_BRANCH
+
+          # Set the commit author info
+          git config --global user.name "${{ env.CI_COMMIT_AUTHOR }}"
+          git config --global user.email "username@users.noreply.github.com"
+
+          # Fetch the latest changes from the origin to make sure we are up to date
+          git fetch origin
+
+          # Stage and commit changes to README.md
+          git add README.md
+          git status
+          git commit -m "${{ env.CI_COMMIT_MESSAGE }}"
+
+          # Push changes to the same branch
+          git push origin $CURRENT_BRANCH
           )
-        env:
-          GITHUB_TOKEN: ${{ secrets.GIT_ACCESS_TOKEN }}
