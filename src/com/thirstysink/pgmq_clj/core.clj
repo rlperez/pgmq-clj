@@ -27,7 +27,7 @@
     result))
 
 (defn send-message
-  "Send one message to a queue `queue-name` with a `payload` REMOVEME
+  "Send one message to a queue `queue-name` with a `payload`
   that will not be read for `delay` seconds. A `delay` of 0
   indicates it may be read immediately.
 
