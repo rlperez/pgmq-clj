@@ -25,6 +25,13 @@ jobs:
       - name: Install tool dependencies
         uses: jdx/mise-action@v2
       - name: Run tests
+        if: ${{ matrix.testcontainer != 'quay.io/tembo/pg17-pgmq' }}
+        env:
+          TEST_CONTAINER: ${{ matrix.testcontainer }}
+        run: |
+          bb test
+      - name: Run tests
+        if: ${{ matrix.testcontainer == 'quay.io/tembo/pg17-pgmq' }}
         env:
           TEST_CONTAINER: ${{ matrix.testcontainer }}
         run: |
@@ -40,16 +47,19 @@ jobs:
         if: github.ref != 'refs/heads/master' && matrix.testcontainer == 'quay.io/tembo/pg17-pgmq'
         run: |
           bb document
-
+          echo "Checking for document changes..."
           git diff --exit-code --quiet README.md || (
             echo "Documentation was updated. Committing changes."
             git config user.name "GitHub Actions Bot"
             git config user.email "<>"
 
-            git add README.md
+            CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+            git checkout $CURRENT_BRANCH
+            git remote set-url origin https://github-actions:${{ secrets.GIT_ACCESS_TOKEN }}@github.com/rlperez/pgmq-clj.git
 
+            git add README.md
             git commit -m "docs: Automated update after README.md change"
-            git push
+            git push origin $CURRENT_BRANCH
           )
         env:
           GITHUB_TOKEN: ${{ secrets.GIT_ACCESS_TOKEN }}
