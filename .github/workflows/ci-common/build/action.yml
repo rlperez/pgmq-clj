@@ -1,7 +1,7 @@
-name: "Common Build Steps"
-description: "Performs the common build steps"
+name: Common Build Steps
+description: Performs the common build steps
 runs:
-  using: "composite"
+  using: composite
   steps:
     - name: Install rlwrap
       shell: bash
