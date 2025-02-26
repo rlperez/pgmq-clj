@@ -37,7 +37,7 @@ jobs:
           slug: rlperez/pgmq-clj
           files: target/coverage/codecov.json
       - name: Check if README.md was changed and commit if necessary
-        if: github.ref != 'refs/heads/master'
+        if: github.ref != 'refs/heads/master' && matrix.testcontainer == 'quay.io/tembo/pg17-pgmq'
         run: |
           bb document
 
