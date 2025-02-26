@@ -2,12 +2,13 @@ name: Clojure CI
 
 on:
   push:
-    branches: ["master"]
+    branches: ["*"]
   pull_request:
     branches: ["master"]
 
 jobs:
   build:
+    if: github.actor != 'github-actions'
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -27,7 +28,7 @@ jobs:
         env:
           TEST_CONTAINER: ${{ matrix.testcontainer }}
         run: |
-          bb -cp src test coverage
+          bb test coverage
       - name: Upload coverage reports to Codecov
         if: ${{ matrix.testcontainer == 'quay.io/tembo/pg17-pgmq' }}
         uses: codecov/codecov-action@v5
@@ -35,3 +36,20 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: rlperez/pgmq-clj
           files: target/coverage/codecov.json
+      - name: Check if README.md was changed and commit if necessary
+        if: github.ref != 'refs/heads/master'
+        run: |
+          bb document
+
+          git diff --exit-code --quiet README.md || (
+            echo "Documentation was updated. Committing changes."
+            git config user.name "GitHub Actions Bot"
+            git config user.email "<>"
+
+            git add README.md
+
+            git commit -m "docs: Automated update after README.md change"
+            git push
+          )
+        env:
+          GITHUB_TOKEN: ${{ secrets.GIT_ACCESS_TOKEN }}
