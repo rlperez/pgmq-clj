@@ -17,11 +17,18 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Debug Directory Structure
+        run: |
+          ls -R .github/
+
       - name: Run common build steps
-        uses: ./.github/ci-common/build
+        uses: ./.github/workflows/ci-common/build
 
       - name: Run common test steps
-        uses: ./.github/ci-common/test
+        uses: ./.github/workflows/ci-common/test
         with:
           testcontainer: ${{ matrix.testcontainer }}
           codecov: ${{ matrix.testcontainer == 'quay.io/tembo/pg17-pgmq' && 'true' || 'false' }}

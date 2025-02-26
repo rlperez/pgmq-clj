@@ -3,10 +3,8 @@ description: "Performs the common build steps"
 runs:
   using: "composite"
   steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
     - name: Install rlwrap
+      shell: bash
       run: |
         sudo apt install -y rlwrap
 
@@ -14,5 +12,6 @@ runs:
       uses: jdx/mise-action@v2
 
     - name: Run build
+      shell: bash
       run: |
         bb uberjar
