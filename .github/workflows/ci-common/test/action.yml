@@ -7,6 +7,8 @@ inputs:
   codecov:
     description: If true publish code coverage results
     required: true
+  codecov_token:
+    description: Security token to publish coverage
 
 runs:
   using: composite
@@ -18,10 +20,15 @@ runs:
       run: |
         bb test coverage
 
+    - name: Debug Directory Structure
+      shell: bash
+      run: |
+        ls -R .github/
+
     - name: Upload coverage reports to Codecov
       if: ${{ inputs.codecov == true }}
       uses: codecov/codecov-action@v5
       with:
-        token: ${{ secrets.CODECOV_TOKEN }}
+        token: ${{ inputs.codecov_token }}
         slug: rlperez/pgmq-clj
         files: target/coverage/codecov.json

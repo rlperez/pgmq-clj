@@ -32,6 +32,7 @@ jobs:
         with:
           testcontainer: ${{ matrix.testcontainer }}
           codecov: ${{ matrix.testcontainer == 'quay.io/tembo/pg17-pgmq' && 'true' || 'false' }}
+          codecov_token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Generate documentation if changed
         if: matrix.testcontainer == 'quay.io/tembo/pg17-pgmq'
