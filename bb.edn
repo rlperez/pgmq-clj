@@ -7,6 +7,7 @@
          document {:doc "generate documentation"
                    :extra-deps {io.github.borkdude/quickdoc {:git/sha "3aad5fde31c30bdb84554ff5d2d0263fd1743f04"}}
                    :task (exec 'tasks.document/-main)}
+
          run       {:doc  "starts the app"
                     :task (clojure {:dir "."} "-M:dev")
                     :override-builtin true}
@@ -28,17 +29,14 @@
                        (shell {:dir "."} cmd))}
 
          pom {:doc "generates a Maven pom.xml"
-              :task (do
-                      (clojure {:dir "."} "-T:build write-pom"))}
+              :task (clojure {:dir "."} "-T:build write-pom")}
 
          uberjar   {:doc  "builds the uberjar with shadow-cljs output"
-                    :task (do
-                            (clojure {:dir "."} "-T:build all"))
+                    :task (clojure {:dir "."} "-T:build all")
                     :override-builtin true}
 
          upgrade   {:doc "updates dependencies for project"
-                    :task (do
-                            (clojure {:dir "."} "-M:upgrade"))}
+                    :task (clojure {:dir "."} "-M:upgrade")}
 
          format    {:doc  "formats codebase"
                     :task (shell {:dir "src"} "cljfmt fix")}}}
