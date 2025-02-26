@@ -1,3 +1,5 @@
+<!-- Make README.md changes here. README.md is a generated file and changes will be overwritten. -->
+
 [![codecov](https://codecov.io/github/rlperez/pgmq-clj/graph/badge.svg?token=KIC7UP13WY)](https://codecov.io/github/rlperez/pgmq-clj)
 
 

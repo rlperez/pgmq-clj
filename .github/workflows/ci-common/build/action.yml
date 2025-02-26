@@ -1,0 +1,17 @@
+name: Common Build Steps
+description: Performs the common build steps
+runs:
+  using: composite
+  steps:
+    - name: Install rlwrap
+      shell: bash
+      run: |
+        sudo apt install -y rlwrap
+
+    - name: Install tool dependencies
+      uses: jdx/mise-action@v2
+
+    - name: Run build
+      shell: bash
+      run: |
+        bb uberjar
