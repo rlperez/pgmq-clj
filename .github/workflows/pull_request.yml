@@ -18,10 +18,10 @@ jobs:
       contents: write
     steps:
       - name: Run common build steps
-        uses: ./.github/actions/common-build
+        uses: ./.github/ci-common/build
 
       - name: Run common test steps
-        uses: ./.github/actions/common-test
+        uses: ./.github/ci-common/test
         with:
           testcontainer: ${{ matrix.testcontainer }}
           codecov: ${{ matrix.testcontainer == 'quay.io/tembo/pg17-pgmq' && 'true' || 'false' }}
