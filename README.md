@@ -1,3 +1,5 @@
+<!-- Make README.md changes here. README.md is a generated file and changes will be overwritten. -->
+
 [![codecov](https://codecov.io/github/rlperez/pgmq-clj/graph/badge.svg?token=KIC7UP13WY)](https://codecov.io/github/rlperez/pgmq-clj)
 
 
@@ -16,7 +18,7 @@ A PGMQ library written in Clojure
     -  [`list-queues`](#com.thirstysink.pgmq-clj.core/list-queues) - List all queues.
     -  [`pop-message`](#com.thirstysink.pgmq-clj.core/pop-message) - Pops one message from the queue named <code>queue-name</code>.
     -  [`read-message`](#com.thirstysink.pgmq-clj.core/read-message) - Read a <code>quantity</code> of messages from <code>queue-name</code> marking them invisible for <code>visible_time</code> seconds.
-    -  [`send-message`](#com.thirstysink.pgmq-clj.core/send-message) - Send one message to a queue <code>queue-name</code> with a <code>payload</code> REMOVEME that will not be read for <code>delay</code> seconds.
+    -  [`send-message`](#com.thirstysink.pgmq-clj.core/send-message) - Send one message to a queue <code>queue-name</code> with a <code>payload</code> that will not be read for <code>delay</code> seconds.
     -  [`send-message-batch`](#com.thirstysink.pgmq-clj.core/send-message-batch) - Sends <code>payload</code> to the queue named <code>queue-name</code> as a collection of messages that cannot be read for <code>delay</code> seconds.
 -  [`com.thirstysink.pgmq-clj.db.adapter`](#com.thirstysink.pgmq-clj.db.adapter) 
     -  [`Adapter`](#com.thirstysink.pgmq-clj.db.adapter/Adapter)
@@ -160,7 +162,7 @@ Read a `quantity` of messages from `queue-name` marking them invisible for
 ```
 Function.
 
-Send one message to a queue `queue-name` with a `payload` REMOVEME
+Send one message to a queue `queue-name` with a `payload`
   that will not be read for `delay` seconds. A `delay` of 0
   indicates it may be read immediately.
 
