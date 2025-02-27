@@ -6,6 +6,8 @@
 # pgmq-clj
 A PGMQ library written in Clojure
 
+---
+
 
 # Documentation
 # Table of contents
@@ -371,192 +373,213 @@ Enables `clojure.specs.alpha` specs instrumentation.
 
 
 # Specs
-### :com.thirstysink.pgmq-clj.specs/message-records
+
+---
+
+### com.thirstysink.pgmq-clj.core/delete-message
 ```clojure
-(coll-of :com.thirstysink.pgmq-clj.specs/mesage-record)
+(fspec :args (cat :adapter :com.thirstysink.pgmq-clj.specs/adapter :queue-name :com.thirstysink.pgmq-clj.specs/queue-name :msg-id :com.thirstysink.pgmq-clj.specs/msg-id) :ret boolean? :fn nil)
 ```
 
-### :com.thirstysink.pgmq-clj.specs/quantity
+#### :com.thirstysink.pgmq-clj.specs/header-key
 ```clojure
-(and int? (> % 0))
+(or :string string? :keyword keyword?)
 ```
 
-### :com.thirstysink.pgmq-clj.specs/queue-record
-```clojure
-(keys :req-un [:com.thirstysink.pgmq-clj.specs/queue-name :com.thirstysink.pgmq-clj.specs/is-partitioned :com.thirstysink.pgmq-clj.specs/is-unlogged :com.thirstysink.pgmq-clj.specs/created-at])
-```
-
-### com.thirstysink.pgmq-clj.core/send-message
-```clojure
-(fspec :args (cat :adapter :com.thirstysink.pgmq-clj.specs/adapter :queue-name :com.thirstysink.pgmq-clj.specs/queue-name :payload :com.thirstysink.pgmq-clj.specs/payload-object :delay :com.thirstysink.pgmq-clj.specs/delay) :ret :com.thirstysink.pgmq-clj.specs/msg-id :fn nil)
-```
-
-### :com.thirstysink.pgmq-clj.specs/json
-```clojure
-(fn [x] (or (map? x) (vector? x) (string? x) (number? x) (boolean? x) (nil? x)))
-```
-
-### :com.thirstysink.pgmq-clj.specs/enqueued-at
-```clojure
-(instance? java.time.Instant %)
-```
-
-### :com.thirstysink.pgmq-clj.specs/header-value
-```clojure
-(or :string string? :number number? :list (coll-of (or :string string? :number number?)))
-```
-
-### com.thirstysink.pgmq-clj.core/list-queues
-```clojure
-(fspec :args (cat :adapter :com.thirstysink.pgmq-clj.specs/adapter) :ret :com.thirstysink.pgmq-clj.specs/queue-result :fn nil)
-```
-
-### :com.thirstysink.pgmq-clj.specs/message-record
-```clojure
-(keys :req-un [:com.thirstysink.pgmq-clj.specs/msg-id :com.thirstysink.pgmq-clj.specs/read-ct :com.thirstysink.pgmq-clj.specs/enqueued-at :com.thirstysink.pgmq-clj.specs/vt :com.thirstysink.pgmq-clj.specs/message] :opt-un [:com.thirstysink.pgmq-clj.specs/headers])
-```
-
-### com.thirstysink.pgmq-clj.core/drop-queue
-```clojure
-(fspec :args (cat :adapter :com.thirstysink.pgmq-clj.specs/adapter :queue-name :com.thirstysink.pgmq-clj.specs/queue-name) :ret boolean? :fn nil)
-```
-
-### :com.thirstysink.pgmq-clj.specs/delay
-```clojure
-int?
-```
-
-### :com.thirstysink.pgmq-clj.specs/adapter
-```clojure
-(satisfies? Adapter %)
-```
-
-### :com.thirstysink.pgmq-clj.specs/payload-object
-```clojure
-(keys :req-un [:com.thirstysink.pgmq-clj.specs/data :com.thirstysink.pgmq-clj.specs/headers])
-```
-
-### :com.thirstysink.pgmq-clj.specs/payload-objects
-```clojure
-(coll-of :com.thirstysink.pgmq-clj.specs/payload-object)
-```
-
-### com.thirstysink.pgmq-clj.core/delete-message-batch
-```clojure
-(fspec :args (cat :adapter :com.thirstysink.pgmq-clj.specs/adapter :queue-name :com.thirstysink.pgmq-clj.specs/queue-name :msg-ids :com.thirstysink.pgmq-clj.specs/non-empty-msg-ids) :ret :com.thirstysink.pgmq-clj.specs/msg-ids :fn nil)
-```
-
-### :com.thirstysink.pgmq-clj.specs/visibility_time
-```clojure
-(and int? (>= % 0))
-```
-
-### com.thirstysink.pgmq-clj.core/pop-message
-```clojure
-(fspec :args (cat :adapter :com.thirstysink.pgmq-clj.specs/adapter :queue-name :com.thirstysink.pgmq-clj.specs/queue-name) :ret :com.thirstysink.pgmq-clj.specs/message-record :fn nil)
-```
-
-### :com.thirstysink.pgmq-clj.specs/queue-result
-```clojure
-(coll-of :com.thirstysink.pgmq-clj.specs/queue-record)
-```
-
-### :com.thirstysink.pgmq-clj.specs/non-empty-msg-ids
-```clojure
-(and :com.thirstysink.pgmq-clj.specs/msg-ids (complement empty?))
-```
-
-### com.thirstysink.pgmq-clj.core/create-queue
-```clojure
-(fspec :args (cat :adapter :com.thirstysink.pgmq-clj.specs/adapter :queue-name :com.thirstysink.pgmq-clj.specs/queue-name) :ret nil :fn nil)
-```
-
-### :com.thirstysink.pgmq-clj.specs/is-partitioned
+#### :com.thirstysink.pgmq-clj.specs/is-unlogged
 ```clojure
 boolean?
 ```
 
-### :com.thirstysink.pgmq-clj.specs/queue-name
+#### :com.thirstysink.pgmq-clj.specs/vt
 ```clojure
-valid-queue-name?
+(instance? java.time.Instant %)
 ```
 
-### com.thirstysink.pgmq-clj.core/archive-message
+#### :com.thirstysink.pgmq-clj.specs/msg-id
 ```clojure
-(fspec :args (cat :adapter :com.thirstysink.pgmq-clj.specs/adapter :queue-name :com.thirstysink.pgmq-clj.specs/queue-name :msg-ids :com.thirstysink.pgmq-clj.specs/msg-ids) :ret :com.thirstysink.pgmq-clj.specs/msg-ids :fn nil)
+(and number? pos?)
 ```
 
-### :com.thirstysink.pgmq-clj.specs/headers
+#### :com.thirstysink.pgmq-clj.specs/timestamp
 ```clojure
-(nilable (map-of :com.thirstysink.pgmq-clj.specs/header-key :com.thirstysink.pgmq-clj.specs/header-value :min-count 0))
+(instance? java.time.Instant %)
 ```
 
-### :com.thirstysink.pgmq-clj.specs/created-at
+#### :com.thirstysink.pgmq-clj.specs/read-ct
 ```clojure
-(fn [x] (fn* [] (instance? java.time.Instant x)))
+int?
 ```
 
-### com.thirstysink.pgmq-clj.core/send-message-batch
-```clojure
-(fspec :args (cat :adapter :com.thirstysink.pgmq-clj.specs/adapter :queue-name :com.thirstysink.pgmq-clj.specs/queue-name :payload :com.thirstysink.pgmq-clj.specs/payload-objects :delay :com.thirstysink.pgmq-clj.specs/delay) :ret :com.thirstysink.pgmq-clj.specs/msg-ids :fn nil)
-```
-
-### :com.thirstysink.pgmq-clj.specs/msg-ids
-```clojure
-(coll-of :com.thirstysink.pgmq-clj.specs/msg-id)
-```
-
-### :com.thirstysink.pgmq-clj.specs/message
-```clojure
-(fn [x] (or (map? x) (vector? x) (string? x) (number? x) (boolean? x) (nil? x)))
-```
-
-### :com.thirstysink.pgmq-clj.specs/data
-```clojure
-(fn [x] (or (map? x) (vector? x) (string? x) (number? x) (boolean? x) (nil? x)))
-```
-
-### :clojure.spec.alpha/kvs->map
-```clojure
-(conformer (zipmap (map :clojure.spec.alpha/k %) (map :clojure.spec.alpha/v %)) (map (fn [[k v]] #:clojure.spec.alpha{:k k, :v v}) %))
-```
+---
 
 ### com.thirstysink.pgmq-clj.core/read-message
 ```clojure
 (fspec :args (cat :adapter :com.thirstysink.pgmq-clj.specs/adapter :queue-name :com.thirstysink.pgmq-clj.specs/queue-name :visibility_time :com.thirstysink.pgmq-clj.specs/visibility_time :quantity :com.thirstysink.pgmq-clj.specs/quantity :filter :com.thirstysink.pgmq-clj.specs/json) :ret :com.thirstysink.pgmq-clj.specs/message-records :fn nil)
 ```
 
-### :com.thirstysink.pgmq-clj.specs/read-ct
+#### :clojure.spec.alpha/kvs->map
 ```clojure
-int?
+(conformer (zipmap (map :clojure.spec.alpha/k %) (map :clojure.spec.alpha/v %)) (map (fn [[k v]] #:clojure.spec.alpha{:k k, :v v}) %))
 ```
 
-### :com.thirstysink.pgmq-clj.specs/timestamp
+#### :com.thirstysink.pgmq-clj.specs/data
 ```clojure
-(instance? java.time.Instant %)
+(fn [x] (or (map? x) (vector? x) (string? x) (number? x) (boolean? x) (nil? x)))
 ```
 
-### :com.thirstysink.pgmq-clj.specs/msg-id
+#### :com.thirstysink.pgmq-clj.specs/message
 ```clojure
-(and number? pos?)
+(fn [x] (or (map? x) (vector? x) (string? x) (number? x) (boolean? x) (nil? x)))
 ```
 
-### :com.thirstysink.pgmq-clj.specs/vt
+#### :com.thirstysink.pgmq-clj.specs/msg-ids
 ```clojure
-(instance? java.time.Instant %)
+(coll-of :com.thirstysink.pgmq-clj.specs/msg-id)
 ```
 
-### :com.thirstysink.pgmq-clj.specs/is-unlogged
+---
+
+### com.thirstysink.pgmq-clj.core/send-message-batch
+```clojure
+(fspec :args (cat :adapter :com.thirstysink.pgmq-clj.specs/adapter :queue-name :com.thirstysink.pgmq-clj.specs/queue-name :payload :com.thirstysink.pgmq-clj.specs/payload-objects :delay :com.thirstysink.pgmq-clj.specs/delay) :ret :com.thirstysink.pgmq-clj.specs/msg-ids :fn nil)
+```
+
+#### :com.thirstysink.pgmq-clj.specs/created-at
+```clojure
+(fn [x] (fn* [] (instance? java.time.Instant x)))
+```
+
+#### :com.thirstysink.pgmq-clj.specs/headers
+```clojure
+(nilable (map-of :com.thirstysink.pgmq-clj.specs/header-key :com.thirstysink.pgmq-clj.specs/header-value :min-count 0))
+```
+
+---
+
+### com.thirstysink.pgmq-clj.core/archive-message
+```clojure
+(fspec :args (cat :adapter :com.thirstysink.pgmq-clj.specs/adapter :queue-name :com.thirstysink.pgmq-clj.specs/queue-name :msg-ids :com.thirstysink.pgmq-clj.specs/msg-ids) :ret :com.thirstysink.pgmq-clj.specs/msg-ids :fn nil)
+```
+
+#### :com.thirstysink.pgmq-clj.specs/queue-name
+```clojure
+valid-queue-name?
+```
+
+#### :com.thirstysink.pgmq-clj.specs/is-partitioned
 ```clojure
 boolean?
 ```
 
-### :com.thirstysink.pgmq-clj.specs/header-key
+---
+
+### com.thirstysink.pgmq-clj.core/create-queue
 ```clojure
-(or :string string? :keyword keyword?)
+(fspec :args (cat :adapter :com.thirstysink.pgmq-clj.specs/adapter :queue-name :com.thirstysink.pgmq-clj.specs/queue-name) :ret nil :fn nil)
 ```
 
-### com.thirstysink.pgmq-clj.core/delete-message
+#### :com.thirstysink.pgmq-clj.specs/non-empty-msg-ids
 ```clojure
-(fspec :args (cat :adapter :com.thirstysink.pgmq-clj.specs/adapter :queue-name :com.thirstysink.pgmq-clj.specs/queue-name :msg-id :com.thirstysink.pgmq-clj.specs/msg-id) :ret boolean? :fn nil)
+(and :com.thirstysink.pgmq-clj.specs/msg-ids (complement empty?))
+```
+
+#### :com.thirstysink.pgmq-clj.specs/queue-result
+```clojure
+(coll-of :com.thirstysink.pgmq-clj.specs/queue-record)
+```
+
+---
+
+### com.thirstysink.pgmq-clj.core/pop-message
+```clojure
+(fspec :args (cat :adapter :com.thirstysink.pgmq-clj.specs/adapter :queue-name :com.thirstysink.pgmq-clj.specs/queue-name) :ret :com.thirstysink.pgmq-clj.specs/message-record :fn nil)
+```
+
+#### :com.thirstysink.pgmq-clj.specs/visibility_time
+```clojure
+(and int? (>= % 0))
+```
+
+---
+
+### com.thirstysink.pgmq-clj.core/delete-message-batch
+```clojure
+(fspec :args (cat :adapter :com.thirstysink.pgmq-clj.specs/adapter :queue-name :com.thirstysink.pgmq-clj.specs/queue-name :msg-ids :com.thirstysink.pgmq-clj.specs/non-empty-msg-ids) :ret :com.thirstysink.pgmq-clj.specs/msg-ids :fn nil)
+```
+
+#### :com.thirstysink.pgmq-clj.specs/payload-objects
+```clojure
+(coll-of :com.thirstysink.pgmq-clj.specs/payload-object)
+```
+
+#### :com.thirstysink.pgmq-clj.specs/payload-object
+```clojure
+(keys :req-un [:com.thirstysink.pgmq-clj.specs/data :com.thirstysink.pgmq-clj.specs/headers])
+```
+
+#### :com.thirstysink.pgmq-clj.specs/adapter
+```clojure
+(satisfies? Adapter %)
+```
+
+#### :com.thirstysink.pgmq-clj.specs/delay
+```clojure
+int?
+```
+
+---
+
+### com.thirstysink.pgmq-clj.core/drop-queue
+```clojure
+(fspec :args (cat :adapter :com.thirstysink.pgmq-clj.specs/adapter :queue-name :com.thirstysink.pgmq-clj.specs/queue-name) :ret boolean? :fn nil)
+```
+
+#### :com.thirstysink.pgmq-clj.specs/message-record
+```clojure
+(keys :req-un [:com.thirstysink.pgmq-clj.specs/msg-id :com.thirstysink.pgmq-clj.specs/read-ct :com.thirstysink.pgmq-clj.specs/enqueued-at :com.thirstysink.pgmq-clj.specs/vt :com.thirstysink.pgmq-clj.specs/message] :opt-un [:com.thirstysink.pgmq-clj.specs/headers])
+```
+
+---
+
+### com.thirstysink.pgmq-clj.core/list-queues
+```clojure
+(fspec :args (cat :adapter :com.thirstysink.pgmq-clj.specs/adapter) :ret :com.thirstysink.pgmq-clj.specs/queue-result :fn nil)
+```
+
+#### :com.thirstysink.pgmq-clj.specs/header-value
+```clojure
+(or :string string? :number number? :list (coll-of (or :string string? :number number?)))
+```
+
+#### :com.thirstysink.pgmq-clj.specs/enqueued-at
+```clojure
+(instance? java.time.Instant %)
+```
+
+#### :com.thirstysink.pgmq-clj.specs/json
+```clojure
+(fn [x] (or (map? x) (vector? x) (string? x) (number? x) (boolean? x) (nil? x)))
+```
+
+---
+
+### com.thirstysink.pgmq-clj.core/send-message
+```clojure
+(fspec :args (cat :adapter :com.thirstysink.pgmq-clj.specs/adapter :queue-name :com.thirstysink.pgmq-clj.specs/queue-name :payload :com.thirstysink.pgmq-clj.specs/payload-object :delay :com.thirstysink.pgmq-clj.specs/delay) :ret :com.thirstysink.pgmq-clj.specs/msg-id :fn nil)
+```
+
+#### :com.thirstysink.pgmq-clj.specs/queue-record
+```clojure
+(keys :req-un [:com.thirstysink.pgmq-clj.specs/queue-name :com.thirstysink.pgmq-clj.specs/is-partitioned :com.thirstysink.pgmq-clj.specs/is-unlogged :com.thirstysink.pgmq-clj.specs/created-at])
+```
+
+#### :com.thirstysink.pgmq-clj.specs/quantity
+```clojure
+(and int? (> % 0))
+```
+
+#### :com.thirstysink.pgmq-clj.specs/message-records
+```clojure
+(coll-of :com.thirstysink.pgmq-clj.specs/mesage-record)
 ```
