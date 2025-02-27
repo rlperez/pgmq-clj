@@ -1,0 +1,34 @@
+name: Common Test Steps
+description: Runs common test steps like running tests and uploading coverage
+inputs:
+  testcontainer:
+    description: Test container image to use
+    required: true
+  codecov:
+    description: If true publish code coverage results
+    required: true
+  codecov_token:
+    description: Security token to publish coverage
+
+runs:
+  using: composite
+  steps:
+    - name: Run tests
+      shell: bash
+      env:
+        TEST_CONTAINER: ${{ inputs.testcontainer }}
+      run: |
+        bb test coverage
+
+    - name: Debug Directory Structure
+      shell: bash
+      run: |
+        ls -R .github/
+
+    - name: Upload coverage reports to Codecov
+      if: ${{ inputs.codecov == true }}
+      uses: codecov/codecov-action@v5
+      with:
+        token: ${{ inputs.codecov_token }}
+        slug: rlperez/pgmq-clj
+        files: target/coverage/codecov.json
