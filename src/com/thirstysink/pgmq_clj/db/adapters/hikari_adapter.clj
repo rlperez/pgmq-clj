@@ -77,7 +77,7 @@
                         e))))))
 
 (defn ->pgobject
-  "Transforms Clojure data to a PGobject that contains the data as
+  "Transforms Clojure data to a PGobject `x` that contains the data as
   JSON. PGObject type defaults to `jsonb` but can be changed via
   metadata key `:pgtype`"
   [x]
@@ -87,7 +87,7 @@
       (.setValue (->json x)))))
 
 (defn <-pgobject
-  "Transform PGobject containing `json` or `jsonb` value to Clojure data."
+  "Transform PGobject `v` containing `json` or `jsonb` value to Clojure data."
   [^PGobject v]
   (let [^String type  (.getType v)
         ^String value (.getValue v)]
@@ -119,8 +119,8 @@
     (.toInstant v)))
 
 (defn ensure-pgmq-extension
-  "Checks the database to verify that the `pgmq` extension is installed.
-  If it is not then it will throw an exception."
+  "Checks the database to verify that the `pgmq` extension is installed
+  using the `adapter`. If it is not then it will throw an exception."
   [adapter]
   (let [check-extension-sql "SELECT extname FROM pg_extension WHERE extname = 'pgmq';"
         extension-check (adapter/query adapter check-extension-sql [])]
@@ -128,7 +128,7 @@
       (throw (ex-info "PGMQ extension is not installed." {:cause :extension-missing})))))
 
 (defn make-hikari-adapter
-  "Create a new HikariAdapter instance. The argument config
+  "Create a new `HikariAdapter` instance. The argument `config`
   provides database connection values. See https://github.com/tomekw/hikari-cp
   for additional details on the configuration options.
 
