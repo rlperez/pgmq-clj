@@ -76,7 +76,7 @@
     (b/copy-file {:src "target/classes/META-INF/maven/com.thirstysink/pgmq-clj/pom.xml"
                   :target "./pom.xml"})))
 
-(defn uber [_]
+(defn jar [_]
   (build-project [])
   (write-docs [])
   (package-jar []))
@@ -89,4 +89,4 @@
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn all [_]
-  (clean nil) (write-pom nil) (uber nil))
+  (clean nil) (write-pom nil) (jar nil))
