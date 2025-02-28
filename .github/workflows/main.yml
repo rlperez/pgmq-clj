@@ -1,0 +1,26 @@
+name: Clojure CI Pull Request
+
+on:
+  push:
+    branches: ["master"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        testcontainer:
+          - quay.io/tembo/pg15-pgmq
+          - quay.io/tembo/pg16-pgmq
+          - quay.io/tembo/pg17-pgmq
+    permissions:
+      contents: write
+    steps:
+      - name: Run common build steps
+        uses: ./.github/ci-common/build
+
+      - name: Run common test steps
+        uses: ./.github/ci-common/test
+        with:
+          testcontainer: ${{ matrix.testcontainer }}
+          codecov: ${{ matrix.testcontainer == 'quay.io/tembo/pg17-pgmq' && 'true' || 'false' }}

@@ -31,9 +31,9 @@
          pom {:doc "generates a Maven pom.xml"
               :task (clojure {:dir "."} "-T:build write-pom")}
 
-         uberjar   {:doc  "builds the uberjar with shadow-cljs output"
-                    :task (clojure {:dir "."} "-T:build all")
-                    :override-builtin true}
+         jar   {:doc  "builds the jar"
+                :task (clojure {:dir "."} "-T:build all")
+                :override-builtin true}
 
          upgrade   {:doc "updates dependencies for project"
                     :task (clojure {:dir "."} "-M:upgrade")}

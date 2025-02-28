@@ -1,7 +1,7 @@
 (ns build
   (:require [clojure.edn :as edn]
             [clojure.string :as string]
-            ;; [deps-deploy.deps-deploy :as dd]
+            [clojure.java.shell :as shell]            ;; [deps-deploy.deps-deploy :as dd]
             [clojure.tools.build.api :as b]))
 
 (defn- get-version []
@@ -53,25 +53,33 @@
            :src-dirs  ["src"]
            :pom-data  (pom-template version))))
 
-(defn write-pom [opts]
-  (println "Writing Pom...")
-  (let [jar-opts (jar-opts opts)]
-    (b/write-pom jar-opts)
-    (b/copy-dir {:src-dirs ["src"]
-                 :target-dir class-dir})
-    (b/copy-file {:src "target/classes/META-INF/maven/com.thirstysink/pgmq-clj/pom.xml"
-                  :target "./pom.xml"})))
-
-(defn uber [_]
+(defn build-project [_]
   (println "Compiling Clojure...")
   (b/compile-clj {:basis basis
                   :src-dirs ["src/clj"]
-                  :class-dir class-dir})
+                  :class-dir class-dir}))
+
+(defn write-docs [_]
+  (shell/sh "bb" "document"))
+
+(defn- package-jar [_]
   (println "Making uberjar...")
   (b/uber {:class-dir class-dir
            :uber-file uber-file
            :main main-cls
            :basis basis}))
+
+(defn write-pom [opts]
+  (println "Writing Pom...")
+  (let [jar-opts (jar-opts opts)]
+    (b/write-pom jar-opts)
+    (b/copy-file {:src "target/classes/META-INF/maven/com.thirstysink/pgmq-clj/pom.xml"
+                  :target "./pom.xml"})))
+
+(defn jar [_]
+  (build-project [])
+  (write-docs [])
+  (package-jar []))
 
 ;; (defn deploy "Deploy the JAR to Clojars." [opts]
 ;;   (let [{:keys [jar-file] :as opts} (jar-opts opts)]
@@ -81,4 +89,4 @@
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn all [_]
-  (clean nil) (write-pom nil) (uber nil))
+  (clean nil) (write-pom nil) (jar nil))

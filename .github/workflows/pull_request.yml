@@ -1,0 +1,52 @@
+name: Clojure CI Pull Request
+
+on:
+  pull_request:
+    branches: ["master"]
+
+jobs:
+  build:
+    if: github.actor != 'github-actions'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        testcontainer:
+          - quay.io/tembo/pg15-pgmq
+          - quay.io/tembo/pg16-pgmq
+          - quay.io/tembo/pg17-pgmq
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Run common build steps
+        uses: ./.github/workflows/ci-common/build
+
+      - name: Run common test steps
+        uses: ./.github/workflows/ci-common/test
+        with:
+          testcontainer: ${{ matrix.testcontainer }}
+          codecov: ${{ matrix.testcontainer == 'quay.io/tembo/pg17-pgmq' && 'true' || 'false' }}
+          codecov_token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Generate documentation f changed
+        if: matrix.testcontainer == 'quay.io/tembo/pg17-pgmq'
+        env:
+          CI_COMMIT_MESSAGE: "docs: Automated update after README.md change"
+          CI_COMMIT_AUTHOR: GitHub Actions Bot
+        run: |
+          bb document
+          echo "Checking for document changes on branch ${{ github.head_ref  }}..."
+          git diff --exit-code --quiet README.md || (
+            echo "Documentation was updated. Committing changes..."
+            git config --global user.name "${{ env.CI_COMMIT_AUTHOR }}"
+            git config --global user.email "rlperez@users.noreply.github.com"
+            git fetch origin
+            git add README.md
+            git status
+            git commit -m "${{ env.CI_COMMIT_MESSAGE }}"
+            git push
+          )
