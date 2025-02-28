@@ -10,8 +10,8 @@ jobs:
     strategy:
       matrix:
         testcontainer:
-          # - quay.io/tembo/pg15-pgmq
-          # - quay.io/tembo/pg16-pgmq
+          - quay.io/tembo/pg15-pgmq
+          - quay.io/tembo/pg16-pgmq
           - quay.io/tembo/pg17-pgmq
     permissions:
       contents: write
