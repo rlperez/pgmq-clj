@@ -14,15 +14,19 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Install tool dependencies
-        uses: jdx/mise-action@v2
+
+      - name: Run common build steps
+        uses: ./.github/workflows/ci-common/build
+
       - name: Update dependencies
         run: |
           bb upgrade
+
       - name: Verify authentication
         run: gh auth status
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Create pull request if updates are present
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
