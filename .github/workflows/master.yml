@@ -16,6 +16,9 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Run common build steps
         uses: ./.github/workflows/ci-common/build
 
