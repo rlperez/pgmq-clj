@@ -38,6 +38,7 @@ jobs:
           CI_COMMIT_MESSAGE: "docs: Automated update after README.md change"
           CI_COMMIT_AUTHOR: GitHub Actions Bot
         run: |
+          #!/bin/bash
           bb document
           echo "Checking for document changes on branch ${{ github.head_ref  }}..."
           git diff --exit-code --quiet README.md || (

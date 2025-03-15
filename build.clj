@@ -63,7 +63,7 @@
   (shell/sh "bb" "document"))
 
 (defn- package-jar [_]
-  (println "Making uberjar...")
+  (println "Making jar...")
   (b/uber {:class-dir class-dir
            :uber-file uber-file
            :main main-cls

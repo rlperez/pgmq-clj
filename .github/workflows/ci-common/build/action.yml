@@ -14,4 +14,4 @@ runs:
     - name: Run build
       shell: bash
       run: |
-        bb uberjar
+        bb jar
