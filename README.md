@@ -79,7 +79,6 @@ clj -M:upgrade
     -  [`execute!`](#com.thirstysink.pgmq-clj.db.adapter/execute!) - Execute a <code>sql</code> statement and <code>params</code> with 0 or more return values using <code>this</code>.
     -  [`execute-one!`](#com.thirstysink.pgmq-clj.db.adapter/execute-one!) - Execute a <code>sql</code> statement and <code>params</code> with 0 or 1 return values using <code>this</code>.
     -  [`query`](#com.thirstysink.pgmq-clj.db.adapter/query) - Query the database with a given <code>sql</code>, <code>params</code>, and return results using <code>this</code>.
-    -  [`with-db`](#com.thirstysink.pgmq-clj.db.adapter/with-db) - Wrap a function <code>f</code> and use the adapter across multiple operations using <code>this</code>.
     -  [`with-transaction`](#com.thirstysink.pgmq-clj.db.adapter/with-transaction) - Wrap a function <code>f</code> in a database transaction using <code>this</code>.
 -  [`com.thirstysink.pgmq-clj.db.adapters.hikari-adapter`](#com.thirstysink.pgmq-clj.db.adapters.hikari-adapter) 
     -  [`->pgobject`](#com.thirstysink.pgmq-clj.db.adapters.hikari-adapter/->pgobject) - Transforms Clojure data to a PGobject <code>x</code> that contains the data as JSON.
@@ -255,7 +254,7 @@ Sends `payload` to the queue named `queue-name` as a collection of messages
 
 
 
-<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/db/adapter.clj#L3-L9">Source</a></sub></p>
+<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/db/adapter.clj#L3-L8">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.db.adapter/close">`close`</a><a name="com.thirstysink.pgmq-clj.db.adapter/close"></a>
 ``` clojure
@@ -265,7 +264,7 @@ Sends `payload` to the queue named `queue-name` as a collection of messages
 Function.
 
 Performs database connection cleanup using `this`.
-<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/db/adapter.clj#L9-L9">Source</a></sub></p>
+<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/db/adapter.clj#L8-L8">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.db.adapter/execute!">`execute!`</a><a name="com.thirstysink.pgmq-clj.db.adapter/execute!"></a>
 ``` clojure
@@ -297,16 +296,6 @@ Function.
 Query the database with a given `sql`, `params`, and return results using `this`.
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/db/adapter.clj#L6-L6">Source</a></sub></p>
 
-## <a name="com.thirstysink.pgmq-clj.db.adapter/with-db">`with-db`</a><a name="com.thirstysink.pgmq-clj.db.adapter/with-db"></a>
-``` clojure
-
-(with-db this f)
-```
-Function.
-
-Wrap a function `f` and use the adapter across multiple operations using `this`
-<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/db/adapter.clj#L8-L8">Source</a></sub></p>
-
 ## <a name="com.thirstysink.pgmq-clj.db.adapter/with-transaction">`with-transaction`</a><a name="com.thirstysink.pgmq-clj.db.adapter/with-transaction"></a>
 ``` clojure
 
@@ -335,7 +324,7 @@ Function.
 Transforms Clojure data to a PGobject `x` that contains the data as
   JSON. PGObject type defaults to `jsonb` but can be changed via
   metadata key `:pgtype`
-<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/db/adapters/hikari_adapter.clj#L87-L95">Source</a></sub></p>
+<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/db/adapters/hikari_adapter.clj#L79-L87">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.db.adapters.hikari-adapter/<-pgobject">`<-pgobject`</a><a name="com.thirstysink.pgmq-clj.db.adapters.hikari-adapter/<-pgobject"></a>
 ``` clojure
@@ -345,7 +334,7 @@ Transforms Clojure data to a PGobject `x` that contains the data as
 Function.
 
 Transform PGobject `v` containing `json` or `jsonb` value to Clojure data.
-<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/db/adapters/hikari_adapter.clj#L97-L107">Source</a></sub></p>
+<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/db/adapters/hikari_adapter.clj#L89-L99">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.db.adapters.hikari-adapter/ensure-pgmq-extension">`ensure-pgmq-extension`</a><a name="com.thirstysink.pgmq-clj.db.adapters.hikari-adapter/ensure-pgmq-extension"></a>
 ``` clojure
@@ -356,7 +345,7 @@ Function.
 
 Checks the database to verify that the `pgmq` extension is installed
   using the `adapter`. If it is not then it will throw an exception.
-<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/db/adapters/hikari_adapter.clj#L129-L136">Source</a></sub></p>
+<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/db/adapters/hikari_adapter.clj#L121-L128">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.db.adapters.hikari-adapter/make-hikari-adapter">`make-hikari-adapter`</a><a name="com.thirstysink.pgmq-clj.db.adapters.hikari-adapter/make-hikari-adapter"></a>
 ``` clojure
@@ -376,7 +365,7 @@ Create a new [`HikariAdapter`](#com.thirstysink.pgmq-clj.db.adapters.hikari-adap
   | Password        | This property sets the default authentication password used when obtaining Connections from the underlying driver.     |
   | MaximumPoolSize | This property controls the maximum size that the pool is allowed to reach, including both idle and in-use connections. |
   | MinimumIdle     | This property controls the minimum number of idle connections that HikariCP tries to maintain in the pool.             |
-<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/db/adapters/hikari_adapter.clj#L138-L159">Source</a></sub></p>
+<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/db/adapters/hikari_adapter.clj#L130-L151">Source</a></sub></p>
 
 -----
 # <a name="com.thirstysink.pgmq-clj.instrumentation">com.thirstysink.pgmq-clj.instrumentation</a>
