@@ -68,14 +68,6 @@
                         {:type :transaction-error}
                         e)))))
 
-  (with-db [this f]
-    (let [conn (.getConnection (:datasource this))]
-      (try
-        (f conn)
-        (catch Exception e
-          (throw (ex-info "Error occured executing operation"
-                          {:type :db-error}
-                          e))))))
   (close [this]
     (try
       (.close ^HikariDataSource (:datasource this))
