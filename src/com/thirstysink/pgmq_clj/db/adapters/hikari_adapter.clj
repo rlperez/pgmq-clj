@@ -120,7 +120,10 @@
 
 (defn ensure-pgmq-extension
   "Checks the database to verify that the `pgmq` extension is installed
-  using the `adapter`. If it is not then it will throw an exception."
+  using the `adapter`. If it is not then it will throw an exception.
+  Example:
+  (hikari/ensure-pgmq-extension adapter)
+  ;; => nil"
   [adapter]
   (let [check-extension-sql "SELECT extname FROM pg_extension WHERE extname = 'pgmq';"
         extension-check (adapter/query adapter check-extension-sql [])]
@@ -132,13 +135,19 @@
   provides database connection values. See https://github.com/tomekw/hikari-cp
   for additional details on the configuration options.
 
-  | Setting         | Description                                                                                                  |
-  | :-------------- | :----------------------------------------------------------------------------------------------------------- |
-  | JdbcUrl         | This property sets the JDBC connection URL.                                                                            |
-  | Username        | This property sets the default authentication username used when obtaining Connections from the underlying driver.     |
-  | Password        | This property sets the default authentication password used when obtaining Connections from the underlying driver.     |
-  | MaximumPoolSize | This property controls the maximum size that the pool is allowed to reach, including both idle and in-use connections. |
-  | MinimumIdle     | This property controls the minimum number of idle connections that HikariCP tries to maintain in the pool.             |"
+  | Setting           | Description                                                                                                  |
+  | :---------------- | :----------------------------------------------------------------------------------------------------------- |
+  | jdbc-url          | This property sets the JDBC connection URL.                                                                            |
+  | username          | This property sets the default authentication username used when obtaining Connections from the underlying driver.     |
+  | password          | This property sets the default authentication password used when obtaining Connections from the underlying driver.     |
+  | maximum-pool-size | This property controls the maximum size that the pool is allowed to reach, including both idle and in-use connections. |
+  | minimum-idle      | This property controls the minimum number of idle connections that HikariCP tries to maintain in the pool.             |
+
+  Example:
+  ```clojure
+  (def adapter (hikari/make-hikari-adapter {:jdbc-url \"jdbc:postgresql://0.0.0.0:5432/postgres\" :username \"postgres\" :password \"postgres\"}))
+  ;; => #'user/adapter
+  ```"
   [config]
   (let [datasource (doto (HikariDataSource.)
                      (.setJdbcUrl (:jdbc-url config))
