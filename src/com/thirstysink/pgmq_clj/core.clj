@@ -7,20 +7,50 @@
 (set! *warn-on-reflection* true)
 
 (defn create-queue
-  "Create a queue named `queue-name` using a given `adapter`."
+  "Create a queue named `queue-name` using a given `adapter`.
+
+  Example:
+  ```clojure
+  (core/create-queue adapter \"test-queue\")
+  ;; => nil
+  ```"
   [adapter queue-name]
   (let [create-sql "SELECT pgmq.create(?);"]
-    (adapter/execute-one! adapter create-sql [queue-name])))
+    (adapter/execute-one! adapter create-sql [queue-name]))
+  nil)
 
 (defn drop-queue
-  "Drop queue named `queue-name` using a given `adapter`."
+  "Drop queue named `queue-name` using a given `adapter`.
+
+  Example:
+  ```clojure
+  (core/drop-queue adapter \"test-queue-2\")
+  ;; => true
+  ```"
   [adapter queue-name]
   (let [drop-sql "SELECT pgmq.drop_queue(?);"
         result (adapter/execute-one! adapter drop-sql [queue-name])]
     (:drop-queue result)))
 
 (defn list-queues
-  "List all queues using a given `adapter`."
+  "List all queues using a given `adapter`.
+  Example:
+  (core/list-queues adapter)
+  ;; => [{:queue-name \"test-queue\",
+    :is-partitioned false,
+    :is-unlogged false,
+    :created-at
+    #object[java.time.Instant 0x680b0f16 \"2025-03-20T01:01:42.842248Z\"]}
+   {:queue-name \"test-queue-2\",
+    :is-partitioned false,
+    :is-unlogged false,
+    :created-at
+    #object[java.time.Instant 0x45e79bdf \"2025-03-20T01:01:46.292274Z\"]}
+   {:queue-name \"test-queue-3\",
+    :is-partitioned false,
+    :is-unlogged false,
+    :created-at
+    #object[java.time.Instant 0x19767429 \"2025-03-20T01:01:54.665295Z\"]}]"
   [adapter]
   (let [list-queues-sql "SELECT * FROM pgmq.list_queues();"
         result (adapter/query adapter list-queues-sql [])]
@@ -31,9 +61,12 @@
   that will not be read for `delay` seconds using a given `adapter`.
   A `delay` of 0 indicates it may be read immediately.
 
+  Example:
+  (core/send-message adapter \"test-queue\" {:data {:order-count 12 :user-id \"0f83fbeb-345b-41ca-bbec-3bace0cff5b4\"} :headers {:TENANT \"b5bda77b-8283-4a6d-8de8-40a5041a60ee\"}} 90)
+  ;; => 1
   Example Payloads:
-  - `[{:data {:foo \"bad\"} :headers {:x-data \"baz\"}}]`
-  - `[{:data 10022 :headers {}} {:data \"feed\" :headers {:version \"3\"}}]`"
+  - `{:data {:foo \"bad\"} :headers {:x-data \"baz\"}}`
+  - `{:data \"feed\" :headers {:version \"3\"}}`"
   [adapter queue-name payload delay]
   (let [json-payload (ches/generate-string (:data payload))
         json-headers (ches/generate-string (:headers payload))
@@ -83,7 +116,16 @@
 (defn pop-message
   "Pops one message from the queue named `queue-name` using a given `adapter`. The side-effect of
   this function is equivalent to reading and deleting a message. See also
-  [[read-message]] and [[delete-message]]."
+  [[read-message]] and [[delete-message]].
+
+  Example:
+  (core/pop-message adapter \"test-queue\")
+  ;; => {:msg-id 1,
+         :read-ct 0,
+         :enqueued-at #object[java.time.Instant 0x79684534 \"2025-03-20T01:29:15.298975Z\"],
+         :vt #object[java.time.Instant 0x391acb50 \"2025-03-20T01:30:45.300696Z\"],
+         :message {:user-id \"0f83fbeb-345b-41ca-bbec-3bace0cff5b4\", :order-count 12},
+         :headers {:TENANT \"b5bda77b-8283-4a6d-8de8-40a5041a60ee\"}"
   [adapter queue-name]
   (let [pop-sql "SELECT * FROM pgmq.pop(?);"
         result (adapter/query adapter pop-sql [queue-name])]
