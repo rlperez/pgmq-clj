@@ -111,7 +111,11 @@ Function.
 Archives messages `msg-ids` in a queue named `queue-name` using a given `adapter`.
   This will remove the message from `queue-name` and place it in a archive table
   which is named `a_{queue-name}`.
-<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L92-L99">Source</a></sub></p>
+
+  Example:
+  (core/archive-messages adapter "test-queue" [3])
+  ;; => ()
+<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L148-L159">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.core/create-queue">`create-queue`</a><a name="com.thirstysink.pgmq-clj.core/create-queue"></a>
 ``` clojure
@@ -121,7 +125,13 @@ Archives messages `msg-ids` in a queue named `queue-name` using a given `adapter
 Function.
 
 Create a queue named `queue-name` using a given `adapter`.
-<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L9-L13">Source</a></sub></p>
+
+  Example:
+  ```clojure
+  (core/create-queue adapter "test-queue")
+  ;; => nil
+  ```
+<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L9-L20">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.core/delete-message">`delete-message`</a><a name="com.thirstysink.pgmq-clj.core/delete-message"></a>
 ``` clojure
@@ -132,7 +142,11 @@ Function.
 
 Permanently deletes message with id `msg-id` in the queue
   named `queue-name` using a given `adapter`.
-<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L75-L81">Source</a></sub></p>
+
+  Example:
+   (core/delete-message adapter "test-queue" 3)
+   ;; => true
+<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L118-L128">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.core/delete-message-batch">`delete-message-batch`</a><a name="com.thirstysink.pgmq-clj.core/delete-message-batch"></a>
 ``` clojure
@@ -142,7 +156,11 @@ Permanently deletes message with id `msg-id` in the queue
 Function.
 
 Deletes all `msg-ids` messages in queue `queue-name` using a given `adapter`.
-<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L122-L127">Source</a></sub></p>
+
+  Example:
+  (core/delete-message-batch adapter "test-queue" [2 5 6])
+  ;; => [2 5 6]
+<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L189-L198">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.core/drop-queue">`drop-queue`</a><a name="com.thirstysink.pgmq-clj.core/drop-queue"></a>
 ``` clojure
@@ -152,7 +170,13 @@ Deletes all `msg-ids` messages in queue `queue-name` using a given `adapter`.
 Function.
 
 Drop queue named `queue-name` using a given `adapter`.
-<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L15-L20">Source</a></sub></p>
+
+  Example:
+  ```clojure
+  (core/drop-queue adapter "test-queue-2")
+  ;; => true
+  ```
+<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L22-L33">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.core/list-queues">`list-queues`</a><a name="com.thirstysink.pgmq-clj.core/list-queues"></a>
 ``` clojure
@@ -162,7 +186,24 @@ Drop queue named `queue-name` using a given `adapter`.
 Function.
 
 List all queues using a given `adapter`.
-<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L22-L27">Source</a></sub></p>
+  Example:
+  (core/list-queues adapter)
+  ;; => [{:queue-name "test-queue",
+    :is-partitioned false,
+    :is-unlogged false,
+    :created-at
+    #object[java.time.Instant 0x680b0f16 "2025-03-20T01:01:42.842248Z"]}
+   {:queue-name "test-queue-2",
+    :is-partitioned false,
+    :is-unlogged false,
+    :created-at
+    #object[java.time.Instant 0x45e79bdf "2025-03-20T01:01:46.292274Z"]}
+   {:queue-name "test-queue-3",
+    :is-partitioned false,
+    :is-unlogged false,
+    :created-at
+    #object[java.time.Instant 0x19767429 "2025-03-20T01:01:54.665295Z"]}]
+<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L35-L57">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.core/pop-message">`pop-message`</a><a name="com.thirstysink.pgmq-clj.core/pop-message"></a>
 ``` clojure
@@ -174,7 +215,16 @@ Function.
 Pops one message from the queue named `queue-name` using a given `adapter`. The side-effect of
   this function is equivalent to reading and deleting a message. See also
   [[read-message]] and [[delete-message]].
-<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L83-L90">Source</a></sub></p>
+
+  Example:
+  (core/pop-message adapter "test-queue")
+  ;; => {:msg-id 1,
+         :read-ct 0,
+         :enqueued-at #object[java.time.Instant 0x79684534 "2025-03-20T01:29:15.298975Z"],
+         :vt #object[java.time.Instant 0x391acb50 "2025-03-20T01:30:45.300696Z"],
+         :message {:user-id "0f83fbeb-345b-41ca-bbec-3bace0cff5b4", :order-count 12},
+         :headers {:TENANT "b5bda77b-8283-4a6d-8de8-40a5041a60ee"}
+<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L130-L146">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.core/read-message">`read-message`</a><a name="com.thirstysink.pgmq-clj.core/read-message"></a>
 ``` clojure
@@ -208,7 +258,16 @@ Read a `quantity` of messages from `queue-name` marking them invisible for
   * `{'type': 'error'}`: matches messages with a type key equal to 'error'
   * `{'type': 'error', 'severity': 'high'}`: matches messages with both type equal to 'error' and severity equal to 'high'
   * `{'user_id': 123}`: matches messages with a user_id key equal to 123
-<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L44-L73">Source</a></sub></p>
+
+  Example:
+  (core/read-message adapter "test-queue" 10 88 nil)
+  ;; => ({:msg-id 2,
+          :read-ct 1,
+          :enqueued-at #object[java.time.Instant 0x5f794b3d "2025-03-21T01:14:00.831673Z"],
+          :vt #object[java.time.Instant 0x3fcde164 "2025-03-21T01:15:32.988540Z"],
+          :message {:user-id "0f83fbeb-345b-41ca-bbec-3bace0cff5b4", :order-count 12},
+          :headers {:TENANT "b5bda77b-8283-4a6d-8de8-40a5041a60ee"}})
+<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L78-L116">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.core/send-message">`send-message`</a><a name="com.thirstysink.pgmq-clj.core/send-message"></a>
 ``` clojure
@@ -222,9 +281,13 @@ Send one message to a queue `queue-name` with a `payload`
   A `delay` of 0 indicates it may be read immediately.
 
   Example Payloads:
-  - `[{:data {:foo "bad"} :headers {:x-data "baz"}}]`
-  - `[{:data 10022 :headers {}} {:data "feed" :headers {:version "3"}}]`
-<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L29-L42">Source</a></sub></p>
+  - `{:data {:foo "bad"} :headers {:x-data "baz"}}`
+  - `{:data "feed" :headers {:version "3"}}`
+
+  Example:
+  (core/send-message adapter "test-queue" {:data {:order-count 12 :user-id "0f83fbeb-345b-41ca-bbec-3bace0cff5b4"} :headers {:TENANT "b5bda77b-8283-4a6d-8de8-40a5041a60ee"}} 90)
+  ;; => 1
+<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L59-L76">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.core/send-message-batch">`send-message-batch`</a><a name="com.thirstysink.pgmq-clj.core/send-message-batch"></a>
 ``` clojure
@@ -240,7 +303,14 @@ Sends `payload` to the queue named `queue-name` as a collection of messages
   Example Payloads:
    - `[{:data {:foo "bar"} :headers {:x-data "bat"}}]`
    - `[{:data 10002 :headers {}} {:data "feed" :headers {:version "2"}} ]`
-<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L107-L120">Source</a></sub></p>
+  Example:
+  (core/send-message-batch adapter
+                               "test-queue"
+                               [{:data {:order-count 12 :user-id "0f83fbeb-345b-41ca-bbec-3bace0cff5b4"} :headers {:X-SESS-ID "b5bda77b-8283-4a6d-8de8-40a5041a60ee"}}
+                                {:data {:order-count 12 :user-id "da04bf11-018f-45c4-908f-62c33b6e8aa6"} :headers {:X-SESS-ID "b0ef0d6a-e587-4c28-b995-1efe8cb31c9e"}}]
+                               15)
+  ;; => [5 6]
+<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L167-L187">Source</a></sub></p>
 
 -----
 # <a name="com.thirstysink.pgmq-clj.db.adapter">com.thirstysink.pgmq-clj.db.adapter</a>
@@ -345,7 +415,10 @@ Function.
 
 Checks the database to verify that the `pgmq` extension is installed
   using the `adapter`. If it is not then it will throw an exception.
-<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/db/adapters/hikari_adapter.clj#L121-L128">Source</a></sub></p>
+  Example:
+  (hikari/ensure-pgmq-extension adapter)
+  ;; => nil
+<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/db/adapters/hikari_adapter.clj#L121-L131">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.db.adapters.hikari-adapter/make-hikari-adapter">`make-hikari-adapter`</a><a name="com.thirstysink.pgmq-clj.db.adapters.hikari-adapter/make-hikari-adapter"></a>
 ``` clojure
@@ -358,14 +431,20 @@ Create a new [`HikariAdapter`](#com.thirstysink.pgmq-clj.db.adapters.hikari-adap
   provides database connection values. See https://github.com/tomekw/hikari-cp
   for additional details on the configuration options.
 
-  | Setting         | Description                                                                                                  |
-  | :-------------- | :----------------------------------------------------------------------------------------------------------- |
-  | JdbcUrl         | This property sets the JDBC connection URL.                                                                            |
-  | Username        | This property sets the default authentication username used when obtaining Connections from the underlying driver.     |
-  | Password        | This property sets the default authentication password used when obtaining Connections from the underlying driver.     |
-  | MaximumPoolSize | This property controls the maximum size that the pool is allowed to reach, including both idle and in-use connections. |
-  | MinimumIdle     | This property controls the minimum number of idle connections that HikariCP tries to maintain in the pool.             |
-<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/db/adapters/hikari_adapter.clj#L130-L151">Source</a></sub></p>
+  | Setting           | Description                                                                                                  |
+  | :---------------- | :----------------------------------------------------------------------------------------------------------- |
+  | jdbc-url          | This property sets the JDBC connection URL.                                                                            |
+  | username          | This property sets the default authentication username used when obtaining Connections from the underlying driver.     |
+  | password          | This property sets the default authentication password used when obtaining Connections from the underlying driver.     |
+  | maximum-pool-size | This property controls the maximum size that the pool is allowed to reach, including both idle and in-use connections. |
+  | minimum-idle      | This property controls the minimum number of idle connections that HikariCP tries to maintain in the pool.             |
+
+  Example:
+  ```clojure
+  (def adapter (hikari/make-hikari-adapter {:jdbc-url "jdbc:postgresql://0.0.0.0:5432/postgres" :username "postgres" :password "postgres"}))
+  ;; => #'user/adapter
+  ```
+<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/db/adapters/hikari_adapter.clj#L133-L160">Source</a></sub></p>
 
 -----
 # <a name="com.thirstysink.pgmq-clj.instrumentation">com.thirstysink.pgmq-clj.instrumentation</a>
