@@ -7,20 +7,50 @@
 (set! *warn-on-reflection* true)
 
 (defn create-queue
-  "Create a queue named `queue-name` using a given `adapter`."
+  "Create a queue named `queue-name` using a given `adapter`.
+
+  Example:
+  ```clojure
+  (core/create-queue adapter \"test-queue\")
+  ;; => nil
+  ```"
   [adapter queue-name]
   (let [create-sql "SELECT pgmq.create(?);"]
-    (adapter/execute-one! adapter create-sql [queue-name])))
+    (adapter/execute-one! adapter create-sql [queue-name]))
+  nil)
 
 (defn drop-queue
-  "Drop queue named `queue-name` using a given `adapter`."
+  "Drop queue named `queue-name` using a given `adapter`.
+
+  Example:
+  ```clojure
+  (core/drop-queue adapter \"test-queue-2\")
+  ;; => true
+  ```"
   [adapter queue-name]
   (let [drop-sql "SELECT pgmq.drop_queue(?);"
         result (adapter/execute-one! adapter drop-sql [queue-name])]
     (:drop-queue result)))
 
 (defn list-queues
-  "List all queues using a given `adapter`."
+  "List all queues using a given `adapter`.
+  Example:
+  (core/list-queues adapter)
+  ;; => [{:queue-name \"test-queue\",
+    :is-partitioned false,
+    :is-unlogged false,
+    :created-at
+    #object[java.time.Instant 0x680b0f16 \"2025-03-20T01:01:42.842248Z\"]}
+   {:queue-name \"test-queue-2\",
+    :is-partitioned false,
+    :is-unlogged false,
+    :created-at
+    #object[java.time.Instant 0x45e79bdf \"2025-03-20T01:01:46.292274Z\"]}
+   {:queue-name \"test-queue-3\",
+    :is-partitioned false,
+    :is-unlogged false,
+    :created-at
+    #object[java.time.Instant 0x19767429 \"2025-03-20T01:01:54.665295Z\"]}]"
   [adapter]
   (let [list-queues-sql "SELECT * FROM pgmq.list_queues();"
         result (adapter/query adapter list-queues-sql [])]
@@ -32,8 +62,12 @@
   A `delay` of 0 indicates it may be read immediately.
 
   Example Payloads:
-  - `[{:data {:foo \"bad\"} :headers {:x-data \"baz\"}}]`
-  - `[{:data 10022 :headers {}} {:data \"feed\" :headers {:version \"3\"}}]`"
+  - `{:data {:foo \"bad\"} :headers {:x-data \"baz\"}}`
+  - `{:data \"feed\" :headers {:version \"3\"}}`
+
+  Example:
+  (core/send-message adapter \"test-queue\" {:data {:order-count 12 :user-id \"0f83fbeb-345b-41ca-bbec-3bace0cff5b4\"} :headers {:TENANT \"b5bda77b-8283-4a6d-8de8-40a5041a60ee\"}} 90)
+  ;; => 1"
   [adapter queue-name payload delay]
   (let [json-payload (ches/generate-string (:data payload))
         json-headers (ches/generate-string (:headers payload))
@@ -66,7 +100,16 @@
   * `{}`: matches all messages
   * `{'type': 'error'}`: matches messages with a type key equal to 'error'
   * `{'type': 'error', 'severity': 'high'}`: matches messages with both type equal to 'error' and severity equal to 'high'
-  * `{'user_id': 123}`: matches messages with a user_id key equal to 123"
+  * `{'user_id': 123}`: matches messages with a user_id key equal to 123
+
+  Example:
+  (core/read-message adapter \"test-queue\" 10 88 nil)
+  ;; => ({:msg-id 2,
+          :read-ct 1,
+          :enqueued-at #object[java.time.Instant 0x5f794b3d \"2025-03-21T01:14:00.831673Z\"],
+          :vt #object[java.time.Instant 0x3fcde164 \"2025-03-21T01:15:32.988540Z\"],
+          :message {:user-id \"0f83fbeb-345b-41ca-bbec-3bace0cff5b4\", :order-count 12},
+          :headers {:TENANT \"b5bda77b-8283-4a6d-8de8-40a5041a60ee\"}})"
   [adapter queue-name visible_time quantity filter]
   (let [read-sql "SELECT * FROM pgmq.read(?,?::integer,?::integer,?::jsonb);"
         result (adapter/query adapter read-sql [queue-name visible_time quantity filter])]
@@ -74,7 +117,11 @@
 
 (defn delete-message
   "Permanently deletes message with id `msg-id` in the queue
-  named `queue-name` using a given `adapter`."
+  named `queue-name` using a given `adapter`.
+
+  Example:
+   (core/delete-message adapter \"test-queue\" 3)
+   ;; => true"
   [adapter queue-name msg-id]
   (let [delete-sql "SELECT pgmq.delete(?,?);"
         result (adapter/execute-one! adapter delete-sql [queue-name msg-id])]
@@ -83,7 +130,16 @@
 (defn pop-message
   "Pops one message from the queue named `queue-name` using a given `adapter`. The side-effect of
   this function is equivalent to reading and deleting a message. See also
-  [[read-message]] and [[delete-message]]."
+  [[read-message]] and [[delete-message]].
+
+  Example:
+  (core/pop-message adapter \"test-queue\")
+  ;; => {:msg-id 1,
+         :read-ct 0,
+         :enqueued-at #object[java.time.Instant 0x79684534 \"2025-03-20T01:29:15.298975Z\"],
+         :vt #object[java.time.Instant 0x391acb50 \"2025-03-20T01:30:45.300696Z\"],
+         :message {:user-id \"0f83fbeb-345b-41ca-bbec-3bace0cff5b4\", :order-count 12},
+         :headers {:TENANT \"b5bda77b-8283-4a6d-8de8-40a5041a60ee\"}"
   [adapter queue-name]
   (let [pop-sql "SELECT * FROM pgmq.pop(?);"
         result (adapter/query adapter pop-sql [queue-name])]
@@ -92,7 +148,11 @@
 (defn archive-messages
   "Archives messages `msg-ids` in a queue named `queue-name` using a given `adapter`.
   This will remove the message from `queue-name` and place it in a archive table
-  which is named `a_{queue-name}`."
+  which is named `a_{queue-name}`.
+
+  Example:
+  (core/archive-messages adapter \"test-queue\" [3])
+  ;; => ()"
   [adapter queue-name msg-ids]
   (let [archive-sql "SELECT * FROM pgmq.archive(?,?::bigint[]);"
         result (adapter/query adapter archive-sql [queue-name (into-array Long msg-ids)])]
@@ -111,7 +171,14 @@
 
   Example Payloads:
    - `[{:data {:foo \"bar\"} :headers {:x-data \"bat\"}}]`
-   - `[{:data 10002 :headers {}} {:data \"feed\" :headers {:version \"2\"}} ]`"
+   - `[{:data 10002 :headers {}} {:data \"feed\" :headers {:version \"2\"}} ]`
+  Example:
+  (core/send-message-batch adapter
+                               \"test-queue\"
+                               [{:data {:order-count 12 :user-id \"0f83fbeb-345b-41ca-bbec-3bace0cff5b4\"} :headers {:X-SESS-ID \"b5bda77b-8283-4a6d-8de8-40a5041a60ee\"}}
+                                {:data {:order-count 12 :user-id \"da04bf11-018f-45c4-908f-62c33b6e8aa6\"} :headers {:X-SESS-ID \"b0ef0d6a-e587-4c28-b995-1efe8cb31c9e\"}}]
+                               15)
+  ;; => [5 6]"
   [adapter queue-name payload delay]
   (let [json-payload (->jsonb-str (map :data payload))
         json-headers (->jsonb-str (map :headers payload))
@@ -120,7 +187,11 @@
     (into [] (map :send-batch) result)))
 
 (defn delete-message-batch
-  "Deletes all `msg-ids` messages in queue `queue-name` using a given `adapter`."
+  "Deletes all `msg-ids` messages in queue `queue-name` using a given `adapter`.
+
+  Example:
+  (core/delete-message-batch adapter \"test-queue\" [2 5 6])
+  ;; => [2 5 6]"
   [adapter queue-name msg-ids]
   (let [delete-sql "SELECT pgmq.delete(?,?::bigint[]);"
         result (adapter/execute! adapter delete-sql [queue-name (into-array Long msg-ids)])]
