@@ -74,7 +74,7 @@ clj -M:upgrade
     -  [`send-message`](#com.thirstysink.pgmq-clj.core/send-message) - Send one message to a queue <code>queue-name</code> with a <code>payload</code> that will not be read for <code>delay</code> seconds using a given <code>adapter</code>.
     -  [`send-message-batch`](#com.thirstysink.pgmq-clj.core/send-message-batch) - Sends <code>payload</code> to the queue named <code>queue-name</code> as a collection of messages that cannot be read for <code>delay</code> seconds using a given <code>adapter</code>.
 -  [`com.thirstysink.pgmq-clj.db.adapter`](#com.thirstysink.pgmq-clj.db.adapter) 
-    -  [`Adapter`](#com.thirstysink.pgmq-clj.db.adapter/Adapter)
+    -  [`Adapter`](#com.thirstysink.pgmq-clj.db.adapter/adapter)
     -  [`close`](#com.thirstysink.pgmq-clj.db.adapter/close) - Performs database connection cleanup using <code>this</code>.
     -  [`execute!`](#com.thirstysink.pgmq-clj.db.adapter/execute!) - Execute a <code>sql</code> statement and <code>params</code> with 0 or more return values using <code>this</code>.
     -  [`execute-one!`](#com.thirstysink.pgmq-clj.db.adapter/execute-one!) - Execute a <code>sql</code> statement and <code>params</code> with 0 or 1 return values using <code>this</code>.
@@ -101,7 +101,7 @@ clj -M:upgrade
 
 
 
-## <a name="com.thirstysink.pgmq-clj.core/archive-messages">`archive-messages`</a><a name="com.thirstysink.pgmq-clj.core/archive-messages"></a>
+## <a name="com.thirstysink.pgmq-clj.core/archive-messages">`archive-messages`</a>
 ``` clojure
 
 (archive-messages adapter queue-name msg-ids)
@@ -117,7 +117,7 @@ Archives messages `msg-ids` in a queue named `queue-name` using a given `adapter
   ;; => ()
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L148-L159">Source</a></sub></p>
 
-## <a name="com.thirstysink.pgmq-clj.core/create-queue">`create-queue`</a><a name="com.thirstysink.pgmq-clj.core/create-queue"></a>
+## <a name="com.thirstysink.pgmq-clj.core/create-queue">`create-queue`</a>
 ``` clojure
 
 (create-queue adapter queue-name)
@@ -133,7 +133,7 @@ Create a queue named `queue-name` using a given `adapter`.
   ```
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L9-L20">Source</a></sub></p>
 
-## <a name="com.thirstysink.pgmq-clj.core/delete-message">`delete-message`</a><a name="com.thirstysink.pgmq-clj.core/delete-message"></a>
+## <a name="com.thirstysink.pgmq-clj.core/delete-message">`delete-message`</a>
 ``` clojure
 
 (delete-message adapter queue-name msg-id)
@@ -148,7 +148,7 @@ Permanently deletes message with id `msg-id` in the queue
    ;; => true
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L118-L128">Source</a></sub></p>
 
-## <a name="com.thirstysink.pgmq-clj.core/delete-message-batch">`delete-message-batch`</a><a name="com.thirstysink.pgmq-clj.core/delete-message-batch"></a>
+## <a name="com.thirstysink.pgmq-clj.core/delete-message-batch">`delete-message-batch`</a>
 ``` clojure
 
 (delete-message-batch adapter queue-name msg-ids)
@@ -162,7 +162,7 @@ Deletes all `msg-ids` messages in queue `queue-name` using a given `adapter`.
   ;; => [2 5 6]
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L189-L198">Source</a></sub></p>
 
-## <a name="com.thirstysink.pgmq-clj.core/drop-queue">`drop-queue`</a><a name="com.thirstysink.pgmq-clj.core/drop-queue"></a>
+## <a name="com.thirstysink.pgmq-clj.core/drop-queue">`drop-queue`</a>
 ``` clojure
 
 (drop-queue adapter queue-name)
@@ -178,7 +178,7 @@ Drop queue named `queue-name` using a given `adapter`.
   ```
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L22-L33">Source</a></sub></p>
 
-## <a name="com.thirstysink.pgmq-clj.core/list-queues">`list-queues`</a><a name="com.thirstysink.pgmq-clj.core/list-queues"></a>
+## <a name="com.thirstysink.pgmq-clj.core/list-queues">`list-queues`</a>
 ``` clojure
 
 (list-queues adapter)
@@ -205,7 +205,7 @@ List all queues using a given `adapter`.
     #object[java.time.Instant 0x19767429 "2025-03-20T01:01:54.665295Z"]}]
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L35-L57">Source</a></sub></p>
 
-## <a name="com.thirstysink.pgmq-clj.core/pop-message">`pop-message`</a><a name="com.thirstysink.pgmq-clj.core/pop-message"></a>
+## <a name="com.thirstysink.pgmq-clj.core/pop-message">`pop-message`</a>
 ``` clojure
 
 (pop-message adapter queue-name)
@@ -226,7 +226,7 @@ Pops one message from the queue named `queue-name` using a given `adapter`. The 
          :headers {:TENANT "b5bda77b-8283-4a6d-8de8-40a5041a60ee"}
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L130-L146">Source</a></sub></p>
 
-## <a name="com.thirstysink.pgmq-clj.core/read-message">`read-message`</a><a name="com.thirstysink.pgmq-clj.core/read-message"></a>
+## <a name="com.thirstysink.pgmq-clj.core/read-message">`read-message`</a>
 ``` clojure
 
 (read-message adapter queue-name visible_time quantity filter)
@@ -269,7 +269,7 @@ Read a `quantity` of messages from `queue-name` marking them invisible for
           :headers {:TENANT "b5bda77b-8283-4a6d-8de8-40a5041a60ee"}})
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L78-L116">Source</a></sub></p>
 
-## <a name="com.thirstysink.pgmq-clj.core/send-message">`send-message`</a><a name="com.thirstysink.pgmq-clj.core/send-message"></a>
+## <a name="com.thirstysink.pgmq-clj.core/send-message">`send-message`</a>
 ``` clojure
 
 (send-message adapter queue-name payload delay)
@@ -289,7 +289,7 @@ Send one message to a queue `queue-name` with a `payload`
   ;; => 1
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L59-L76">Source</a></sub></p>
 
-## <a name="com.thirstysink.pgmq-clj.core/send-message-batch">`send-message-batch`</a><a name="com.thirstysink.pgmq-clj.core/send-message-batch"></a>
+## <a name="com.thirstysink.pgmq-clj.core/send-message-batch">`send-message-batch`</a>
 ``` clojure
 
 (send-message-batch adapter queue-name payload delay)
@@ -320,13 +320,13 @@ Sends `payload` to the queue named `queue-name` as a collection of messages
 
 
 
-## <a name="com.thirstysink.pgmq-clj.db.adapter/Adapter">`Adapter`</a><a name="com.thirstysink.pgmq-clj.db.adapter/Adapter"></a>
+## <a name="com.thirstysink.pgmq-clj.db.adapter/adapter">`Adapter`</a>
 
 
 
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/db/adapter.clj#L3-L8">Source</a></sub></p>
 
-## <a name="com.thirstysink.pgmq-clj.db.adapter/close">`close`</a><a name="com.thirstysink.pgmq-clj.db.adapter/close"></a>
+## <a name="com.thirstysink.pgmq-clj.db.adapter/close">`close`</a>
 ``` clojure
 
 (close this)
@@ -336,7 +336,7 @@ Function.
 Performs database connection cleanup using `this`.
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/db/adapter.clj#L8-L8">Source</a></sub></p>
 
-## <a name="com.thirstysink.pgmq-clj.db.adapter/execute!">`execute!`</a><a name="com.thirstysink.pgmq-clj.db.adapter/execute!"></a>
+## <a name="com.thirstysink.pgmq-clj.db.adapter/execute!">`execute!`</a>
 ``` clojure
 
 (execute! this sql params)
@@ -346,7 +346,7 @@ Function.
 Execute a `sql` statement and `params` with 0 or more return values using `this`.
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/db/adapter.clj#L5-L5">Source</a></sub></p>
 
-## <a name="com.thirstysink.pgmq-clj.db.adapter/execute-one!">`execute-one!`</a><a name="com.thirstysink.pgmq-clj.db.adapter/execute-one!"></a>
+## <a name="com.thirstysink.pgmq-clj.db.adapter/execute-one!">`execute-one!`</a>
 ``` clojure
 
 (execute-one! this sql params)
@@ -356,7 +356,7 @@ Function.
 Execute a `sql` statement and `params` with 0 or 1 return values using `this`.
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/db/adapter.clj#L4-L4">Source</a></sub></p>
 
-## <a name="com.thirstysink.pgmq-clj.db.adapter/query">`query`</a><a name="com.thirstysink.pgmq-clj.db.adapter/query"></a>
+## <a name="com.thirstysink.pgmq-clj.db.adapter/query">`query`</a>
 ``` clojure
 
 (query this sql params)
@@ -366,7 +366,7 @@ Function.
 Query the database with a given `sql`, `params`, and return results using `this`.
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/db/adapter.clj#L6-L6">Source</a></sub></p>
 
-## <a name="com.thirstysink.pgmq-clj.db.adapter/with-transaction">`with-transaction`</a><a name="com.thirstysink.pgmq-clj.db.adapter/with-transaction"></a>
+## <a name="com.thirstysink.pgmq-clj.db.adapter/with-transaction">`with-transaction`</a>
 ``` clojure
 
 (with-transaction this f)
@@ -384,7 +384,7 @@ Wrap a function `f` in a database transaction using `this`.
 
 
 
-## <a name="com.thirstysink.pgmq-clj.db.adapters.hikari-adapter/->pgobject">`->pgobject`</a><a name="com.thirstysink.pgmq-clj.db.adapters.hikari-adapter/->pgobject"></a>
+## <a name="com.thirstysink.pgmq-clj.db.adapters.hikari-adapter/->pgobject">`->pgobject`</a>
 ``` clojure
 
 (->pgobject x)
@@ -396,7 +396,7 @@ Transforms Clojure data to a PGobject `x` that contains the data as
   metadata key `:pgtype`
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/db/adapters/hikari_adapter.clj#L79-L87">Source</a></sub></p>
 
-## <a name="com.thirstysink.pgmq-clj.db.adapters.hikari-adapter/<-pgobject">`<-pgobject`</a><a name="com.thirstysink.pgmq-clj.db.adapters.hikari-adapter/<-pgobject"></a>
+## <a name="com.thirstysink.pgmq-clj.db.adapters.hikari-adapter/<-pgobject">`<-pgobject`</a>
 ``` clojure
 
 (<-pgobject v)
@@ -406,7 +406,7 @@ Function.
 Transform PGobject `v` containing `json` or `jsonb` value to Clojure data.
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/db/adapters/hikari_adapter.clj#L89-L99">Source</a></sub></p>
 
-## <a name="com.thirstysink.pgmq-clj.db.adapters.hikari-adapter/ensure-pgmq-extension">`ensure-pgmq-extension`</a><a name="com.thirstysink.pgmq-clj.db.adapters.hikari-adapter/ensure-pgmq-extension"></a>
+## <a name="com.thirstysink.pgmq-clj.db.adapters.hikari-adapter/ensure-pgmq-extension">`ensure-pgmq-extension`</a>
 ``` clojure
 
 (ensure-pgmq-extension adapter)
@@ -420,14 +420,14 @@ Checks the database to verify that the `pgmq` extension is installed
   ;; => nil
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/db/adapters/hikari_adapter.clj#L121-L131">Source</a></sub></p>
 
-## <a name="com.thirstysink.pgmq-clj.db.adapters.hikari-adapter/make-hikari-adapter">`make-hikari-adapter`</a><a name="com.thirstysink.pgmq-clj.db.adapters.hikari-adapter/make-hikari-adapter"></a>
+## <a name="com.thirstysink.pgmq-clj.db.adapters.hikari-adapter/make-hikari-adapter">`make-hikari-adapter`</a>
 ``` clojure
 
 (make-hikari-adapter config)
 ```
 Function.
 
-Create a new [`HikariAdapter`](#com.thirstysink.pgmq-clj.db.adapters.hikari-adapter/HikariAdapter) instance. The argument `config`
+Create a new [`HikariAdapter`](#com.thirstysink.pgmq-clj.db.adapters.hikari-adapter/hikariadapter) instance. The argument `config`
   provides database connection values. See https://github.com/tomekw/hikari-cp
   for additional details on the configuration options.
 
@@ -454,7 +454,7 @@ Create a new [`HikariAdapter`](#com.thirstysink.pgmq-clj.db.adapters.hikari-adap
 
 
 
-## <a name="com.thirstysink.pgmq-clj.instrumentation/disable-instrumentation">`disable-instrumentation`</a><a name="com.thirstysink.pgmq-clj.instrumentation/disable-instrumentation"></a>
+## <a name="com.thirstysink.pgmq-clj.instrumentation/disable-instrumentation">`disable-instrumentation`</a>
 ``` clojure
 
 (disable-instrumentation)
@@ -469,7 +469,7 @@ Disables `clojure.specs.alpha` specs instrumentation. If
   [Learn more](https://github.com/clojure/spec.alpha)
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/instrumentation.clj#L26-L36">Source</a></sub></p>
 
-## <a name="com.thirstysink.pgmq-clj.instrumentation/enable-instrumentation">`enable-instrumentation`</a><a name="com.thirstysink.pgmq-clj.instrumentation/enable-instrumentation"></a>
+## <a name="com.thirstysink.pgmq-clj.instrumentation/enable-instrumentation">`enable-instrumentation`</a>
 ``` clojure
 
 (enable-instrumentation)
@@ -484,7 +484,7 @@ Enables `clojure.specs.alpha` specs instrumentation. If
   [Learn more](https://github.com/clojure/spec.alpha)
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/instrumentation.clj#L15-L24">Source</a></sub></p>
 
-## <a name="com.thirstysink.pgmq-clj.instrumentation/instrumentation-enabled?">`instrumentation-enabled?`</a><a name="com.thirstysink.pgmq-clj.instrumentation/instrumentation-enabled?"></a>
+## <a name="com.thirstysink.pgmq-clj.instrumentation/instrumentation-enabled?">`instrumentation-enabled?`</a>
 
 
 
@@ -502,7 +502,7 @@ A flag that indicates if instrumentation is enabled.
 
 
 
-## <a name="com.thirstysink.pgmq-clj.json/->json">`->json`</a><a name="com.thirstysink.pgmq-clj.json/->json"></a>
+## <a name="com.thirstysink.pgmq-clj.json/->json">`->json`</a>
 
 
 
