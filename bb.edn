@@ -5,7 +5,7 @@
  :tasks {:require ([babashka.fs :as fs]
                    [babashka.tasks :refer [shell]])
          document {:doc "generate documentation"
-                   :extra-deps {io.github.borkdude/quickdoc {:git/sha "382507aad1981d4bc70b4b5bebce17f1eec9eec7"}}
+                   :extra-deps {io.github.borkdude/quickdoc {:git/sha "14a6ecc6d78ed719b6540f0ad1439d38ff7d39b5"}}
                    :task (exec 'tasks.document/-main)}
 
          run       {:doc  "starts the app"
