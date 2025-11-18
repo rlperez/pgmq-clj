@@ -152,4 +152,19 @@
         (is (= (count read-result) 2))
         (is (= delete-result [1 2])))
       (core/drop-queue adapter queue-name))
+    (testing "purge-queue should return 0 with empty queue"
+      (core/create-queue adapter queue-name)
+      (let [purged-count (core/purge-queue adapter queue-name)]
+        (is (= purged-count 0)))
+      (core/drop-queue adapter queue-name))
+    (testing "purge-queue should return number of messages removed from queue"
+      (core/create-queue adapter queue-name)
+      (let [payload [{:data "bar" :headers {:x-my-data "yup"}}
+                     {:data {:baz "bat"} :headers {:x-my-data "nope"}}]
+            _ (core/send-message-batch adapter queue-name payload 0)
+            purged-count (core/purge-queue adapter queue-name)
+            zero-purged (core/purge-queue adapter queue-name)]
+        (is (= purged-count 2))
+        (is (= zero-purged 0)))
+      (core/drop-queue adapter queue-name))
     (adapter/close adapter)))

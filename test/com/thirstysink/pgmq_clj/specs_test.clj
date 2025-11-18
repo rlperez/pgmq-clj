@@ -93,17 +93,18 @@
 
 (deftest drop-queue-name-spec-test
   (let [adapter (->MockAdapter)
+        queue-name "test_queue"
         expected-msg #"Call to com.thirstysink.pgmq-clj.core/drop-queue did not conform to spec."]
     (testing "drop-queue throws exception with an nil adapter"
       (is (thrown-with-msg?
            clojure.lang.ExceptionInfo
            expected-msg
-           (core/drop-queue nil "test_queue"))))
+           (core/drop-queue nil queue-name))))
     (testing "drop-queue throws exception with an invalid adapter"
       (is (thrown-with-msg?
            clojure.lang.ExceptionInfo
            expected-msg
-           (core/drop-queue [] "test_queue"))))
+           (core/drop-queue [] queue-name))))
     (testing "drop-queue throws exception with an empty queue-name"
       (is (thrown-with-msg?
            clojure.lang.ExceptionInfo
@@ -119,6 +120,36 @@
            clojure.lang.ExceptionInfo
            expected-msg
            (core/drop-queue adapter 1))))))
+
+(deftest purge-queue-name-spec-test
+  (let [adapter (->MockAdapter)
+        queue-name "test_queue"
+        expected-msg #"Call to com.thirstysink.pgmq-clj.core/purge-queue did not conform to spec."]
+    (testing "purge-queue throws exception with an nil adapter"
+      (is (thrown-with-msg?
+           clojure.lang.ExceptionInfo
+           expected-msg
+           (core/purge-queue nil queue-name))))
+    (testing "purge-queue throws exception with an invalid adapter"
+      (is (thrown-with-msg?
+           clojure.lang.ExceptionInfo
+           expected-msg
+           (core/purge-queue [] queue-name))))
+    (testing "purge-queue throws exception with an empty queue-name"
+      (is (thrown-with-msg?
+           clojure.lang.ExceptionInfo
+           expected-msg
+           (core/purge-queue adapter ""))))
+    (testing "purge-queue throws exception with a nil queue-name"
+      (is (thrown-with-msg?
+           clojure.lang.ExceptionInfo
+           expected-msg
+           (core/purge-queue adapter nil))))
+    (testing "purge-queue throws exception with a non string queue-name"
+      (is (thrown-with-msg?
+           clojure.lang.ExceptionInfo
+           expected-msg
+           (core/purge-queue adapter 1))))))
 
 (deftest read-message-spec-test
   (let [adapter (->MockAdapter)
