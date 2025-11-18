@@ -86,6 +86,10 @@
   :args (s/cat :adapter ::adapter :queue-name ::queue-name)
   :ret boolean?)
 
+(s/fdef c/purge-queue
+  :args (s/cat :adapter ::adapter :queue-name ::queue-name)
+  :ret integer?)
+
 (s/fdef c/list-queues
   :args (s/cat :adapter ::adapter)
   :ret ::queue-result)

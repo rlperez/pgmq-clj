@@ -32,6 +32,20 @@
         result (adapter/execute-one! adapter drop-sql [queue-name])]
     (:drop-queue result)))
 
+(defn purge-queue
+  "Purge queue named `queue-name` contents using a given `adapter` then
+   and return count of purged items.
+
+   Example:
+   ```clojure
+   (c/purge-queue adapter queue-name)
+   ;; => 2
+   ```"
+  [adapter queue-name]
+  (let [purge-sql "SELECT pgmq.purge_queue(?);"
+        result (adapter/execute-one! adapter purge-sql [queue-name])]
+    (:purge-queue result)))
+
 (defn list-queues
   "List all queues using a given `adapter`.
   Example:
