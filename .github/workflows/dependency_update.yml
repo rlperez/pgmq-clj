@@ -20,7 +20,7 @@ jobs:
 
       - name: Update dependencies
         run: |
-          bb upgrade
+          bb upgrade || { echo "Dependency upgrade failed. Exiting."; exit 1; }
 
       - name: Verify authentication
         run: gh auth status
