@@ -29,7 +29,6 @@ jobs:
         uses: ./.github/workflows/ci-common/test
         with:
           testcontainer: ${{ matrix.testcontainer }}
-          codecov: ${{ matrix.testcontainer == 'quay.io/tembo/pg17-pgmq' && 'true' || 'false' }}
           codecov_token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Generate documentation changed
