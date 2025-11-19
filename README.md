@@ -70,6 +70,7 @@ clj -M:upgrade
     -  [`drop-queue`](#com.thirstysink.pgmq-clj.core/drop-queue) - Drop queue named <code>queue-name</code> using a given <code>adapter</code>.
     -  [`list-queues`](#com.thirstysink.pgmq-clj.core/list-queues) - List all queues using a given <code>adapter</code>.
     -  [`pop-message`](#com.thirstysink.pgmq-clj.core/pop-message) - Pops one message from the queue named <code>queue-name</code> using a given <code>adapter</code>.
+    -  [`purge-queue`](#com.thirstysink.pgmq-clj.core/purge-queue) - Purge queue named <code>queue-name</code> contents using a given <code>adapter</code> then and return count of purged items.
     -  [`read-message`](#com.thirstysink.pgmq-clj.core/read-message) - Read a <code>quantity</code> of messages from <code>queue-name</code> marking them invisible for <code>visible_time</code> seconds using a given <code>adapter</code>.
     -  [`send-message`](#com.thirstysink.pgmq-clj.core/send-message) - Send one message to a queue <code>queue-name</code> with a <code>payload</code> that will not be read for <code>delay</code> seconds using a given <code>adapter</code>.
     -  [`send-message-batch`](#com.thirstysink.pgmq-clj.core/send-message-batch) - Sends <code>payload</code> to the queue named <code>queue-name</code> as a collection of messages that cannot be read for <code>delay</code> seconds using a given <code>adapter</code>.
@@ -103,7 +104,6 @@ clj -M:upgrade
 
 ## <a name="com.thirstysink.pgmq-clj.core/archive-messages">`archive-messages`</a>
 ``` clojure
-
 (archive-messages adapter queue-name msg-ids)
 ```
 Function.
@@ -115,11 +115,10 @@ Archives messages `msg-ids` in a queue named `queue-name` using a given `adapter
   Example:
   (core/archive-messages adapter "test-queue" [3])
   ;; => ()
-<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L148-L159">Source</a></sub></p>
+<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L162-L173">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.core/create-queue">`create-queue`</a>
 ``` clojure
-
 (create-queue adapter queue-name)
 ```
 Function.
@@ -135,7 +134,6 @@ Create a queue named `queue-name` using a given `adapter`.
 
 ## <a name="com.thirstysink.pgmq-clj.core/delete-message">`delete-message`</a>
 ``` clojure
-
 (delete-message adapter queue-name msg-id)
 ```
 Function.
@@ -146,11 +144,10 @@ Permanently deletes message with id `msg-id` in the queue
   Example:
    (core/delete-message adapter "test-queue" 3)
    ;; => true
-<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L118-L128">Source</a></sub></p>
+<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L132-L142">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.core/delete-message-batch">`delete-message-batch`</a>
 ``` clojure
-
 (delete-message-batch adapter queue-name msg-ids)
 ```
 Function.
@@ -160,11 +157,10 @@ Deletes all `msg-ids` messages in queue `queue-name` using a given `adapter`.
   Example:
   (core/delete-message-batch adapter "test-queue" [2 5 6])
   ;; => [2 5 6]
-<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L189-L198">Source</a></sub></p>
+<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L203-L212">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.core/drop-queue">`drop-queue`</a>
 ``` clojure
-
 (drop-queue adapter queue-name)
 ```
 Function.
@@ -180,7 +176,6 @@ Drop queue named `queue-name` using a given `adapter`.
 
 ## <a name="com.thirstysink.pgmq-clj.core/list-queues">`list-queues`</a>
 ``` clojure
-
 (list-queues adapter)
 ```
 Function.
@@ -203,11 +198,10 @@ List all queues using a given `adapter`.
     :is-unlogged false,
     :created-at
     #object[java.time.Instant 0x19767429 "2025-03-20T01:01:54.665295Z"]}]
-<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L35-L57">Source</a></sub></p>
+<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L49-L71">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.core/pop-message">`pop-message`</a>
 ``` clojure
-
 (pop-message adapter queue-name)
 ```
 Function.
@@ -224,11 +218,26 @@ Pops one message from the queue named `queue-name` using a given `adapter`. The 
          :vt #object[java.time.Instant 0x391acb50 "2025-03-20T01:30:45.300696Z"],
          :message {:user-id "0f83fbeb-345b-41ca-bbec-3bace0cff5b4", :order-count 12},
          :headers {:TENANT "b5bda77b-8283-4a6d-8de8-40a5041a60ee"}
-<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L130-L146">Source</a></sub></p>
+<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L144-L160">Source</a></sub></p>
+
+## <a name="com.thirstysink.pgmq-clj.core/purge-queue">`purge-queue`</a>
+``` clojure
+(purge-queue adapter queue-name)
+```
+Function.
+
+Purge queue named `queue-name` contents using a given `adapter` then
+   and return count of purged items.
+
+   Example:
+   ```clojure
+   (c/purge-queue adapter queue-name)
+   ;; => 2
+   ```
+<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L35-L47">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.core/read-message">`read-message`</a>
 ``` clojure
-
 (read-message adapter queue-name visible_time quantity filter)
 ```
 Function.
@@ -267,11 +276,10 @@ Read a `quantity` of messages from `queue-name` marking them invisible for
           :vt #object[java.time.Instant 0x3fcde164 "2025-03-21T01:15:32.988540Z"],
           :message {:user-id "0f83fbeb-345b-41ca-bbec-3bace0cff5b4", :order-count 12},
           :headers {:TENANT "b5bda77b-8283-4a6d-8de8-40a5041a60ee"}})
-<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L78-L116">Source</a></sub></p>
+<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L92-L130">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.core/send-message">`send-message`</a>
 ``` clojure
-
 (send-message adapter queue-name payload delay)
 ```
 Function.
@@ -287,11 +295,10 @@ Send one message to a queue `queue-name` with a `payload`
   Example:
   (core/send-message adapter "test-queue" {:data {:order-count 12 :user-id "0f83fbeb-345b-41ca-bbec-3bace0cff5b4"} :headers {:TENANT "b5bda77b-8283-4a6d-8de8-40a5041a60ee"}} 90)
   ;; => 1
-<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L59-L76">Source</a></sub></p>
+<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L73-L90">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.core/send-message-batch">`send-message-batch`</a>
 ``` clojure
-
 (send-message-batch adapter queue-name payload delay)
 ```
 Function.
@@ -310,7 +317,7 @@ Sends `payload` to the queue named `queue-name` as a collection of messages
                                 {:data {:order-count 12 :user-id "da04bf11-018f-45c4-908f-62c33b6e8aa6"} :headers {:X-SESS-ID "b0ef0d6a-e587-4c28-b995-1efe8cb31c9e"}}]
                                15)
   ;; => [5 6]
-<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L167-L187">Source</a></sub></p>
+<p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L181-L201">Source</a></sub></p>
 
 -----
 # <a name="com.thirstysink.pgmq-clj.db.adapter">com.thirstysink.pgmq-clj.db.adapter</a>
@@ -328,7 +335,6 @@ Sends `payload` to the queue named `queue-name` as a collection of messages
 
 ## <a name="com.thirstysink.pgmq-clj.db.adapter/close">`close`</a>
 ``` clojure
-
 (close this)
 ```
 Function.
@@ -338,7 +344,6 @@ Performs database connection cleanup using `this`.
 
 ## <a name="com.thirstysink.pgmq-clj.db.adapter/execute!">`execute!`</a>
 ``` clojure
-
 (execute! this sql params)
 ```
 Function.
@@ -348,7 +353,6 @@ Execute a `sql` statement and `params` with 0 or more return values using `this`
 
 ## <a name="com.thirstysink.pgmq-clj.db.adapter/execute-one!">`execute-one!`</a>
 ``` clojure
-
 (execute-one! this sql params)
 ```
 Function.
@@ -358,7 +362,6 @@ Execute a `sql` statement and `params` with 0 or 1 return values using `this`.
 
 ## <a name="com.thirstysink.pgmq-clj.db.adapter/query">`query`</a>
 ``` clojure
-
 (query this sql params)
 ```
 Function.
@@ -368,7 +371,6 @@ Query the database with a given `sql`, `params`, and return results using `this`
 
 ## <a name="com.thirstysink.pgmq-clj.db.adapter/with-transaction">`with-transaction`</a>
 ``` clojure
-
 (with-transaction this f)
 ```
 Function.
@@ -386,7 +388,6 @@ Wrap a function `f` in a database transaction using `this`.
 
 ## <a name="com.thirstysink.pgmq-clj.db.adapters.hikari-adapter/->pgobject">`->pgobject`</a>
 ``` clojure
-
 (->pgobject x)
 ```
 Function.
@@ -398,7 +399,6 @@ Transforms Clojure data to a PGobject `x` that contains the data as
 
 ## <a name="com.thirstysink.pgmq-clj.db.adapters.hikari-adapter/<-pgobject">`<-pgobject`</a>
 ``` clojure
-
 (<-pgobject v)
 ```
 Function.
@@ -408,7 +408,6 @@ Transform PGobject `v` containing `json` or `jsonb` value to Clojure data.
 
 ## <a name="com.thirstysink.pgmq-clj.db.adapters.hikari-adapter/ensure-pgmq-extension">`ensure-pgmq-extension`</a>
 ``` clojure
-
 (ensure-pgmq-extension adapter)
 ```
 Function.
@@ -422,7 +421,6 @@ Checks the database to verify that the `pgmq` extension is installed
 
 ## <a name="com.thirstysink.pgmq-clj.db.adapters.hikari-adapter/make-hikari-adapter">`make-hikari-adapter`</a>
 ``` clojure
-
 (make-hikari-adapter config)
 ```
 Function.
@@ -456,7 +454,6 @@ Create a new [`HikariAdapter`](#com.thirstysink.pgmq-clj.db.adapters.hikari-adap
 
 ## <a name="com.thirstysink.pgmq-clj.instrumentation/disable-instrumentation">`disable-instrumentation`</a>
 ``` clojure
-
 (disable-instrumentation)
 (disable-instrumentation ns)
 ```
@@ -471,7 +468,6 @@ Disables `clojure.specs.alpha` specs instrumentation. If
 
 ## <a name="com.thirstysink.pgmq-clj.instrumentation/enable-instrumentation">`enable-instrumentation`</a>
 ``` clojure
-
 (enable-instrumentation)
 (enable-instrumentation ns)
 ```
@@ -721,6 +717,13 @@ int?
 #### :com.thirstysink.pgmq-clj.specs/quantity
 ```clojure
 (and int? (> % 0))
+```
+
+---
+
+### com.thirstysink.pgmq-clj.core/purge-queue
+```clojure
+(fspec :args (cat :adapter :com.thirstysink.pgmq-clj.specs/adapter :queue-name :com.thirstysink.pgmq-clj.specs/queue-name) :ret integer? :fn nil)
 ```
 
 #### :com.thirstysink.pgmq-clj.specs/message-records
