@@ -20,11 +20,6 @@ runs:
       run: |
         bb test coverage
 
-    - name: Debug Directory Structure
-      shell: bash
-      run: |
-        ls -R .github/
-
     - name: Upload coverage reports to Codecov
       if: ${{ inputs.codecov == true }}
       uses: codecov/codecov-action@v5

@@ -9,7 +9,7 @@ runs:
         sudo apt install -y rlwrap
 
     - name: Install tool dependencies
-      uses: jdx/mise-action@v2
+      uses: jdx/mise-action@v3
 
     - name: Run build
       shell: bash
