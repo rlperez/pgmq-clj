@@ -10,9 +10,9 @@ jobs:
     strategy:
       matrix:
         testcontainer:
+          - quay.io/tembo/pg15-pgmq
           - quay.io/tembo/pg16-pgmq
           - quay.io/tembo/pg17-pgmq
-          - quay.io/tembo/pg18-pgmq
     permissions:
       contents: write
     steps:
@@ -26,4 +26,4 @@ jobs:
         uses: ./.github/workflows/ci-common/test
         with:
           testcontainer: ${{ matrix.testcontainer }}
-          codecov: ${{ matrix.testcontainer == 'quay.io/tembo/pg18-pgmq' && 'true' || 'false' }}
+          codecov: ${{ matrix.testcontainer == 'quay.io/tembo/pg17-pgmq' && 'true' || 'false' }}
