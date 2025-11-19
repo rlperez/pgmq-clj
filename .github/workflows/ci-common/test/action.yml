@@ -4,11 +4,9 @@ inputs:
   testcontainer:
     description: Test container image to use
     required: true
-  codecov:
-    description: If true publish code coverage results
-    required: true
   codecov_token:
     description: Security token to publish coverage
+    required: false
 
 runs:
   using: composite
@@ -19,9 +17,13 @@ runs:
         TEST_CONTAINER: ${{ inputs.testcontainer }}
       run: |
         bb test coverage
+        if [ ! -f target/coverage/codecov.json ]; then
+           echo "Coverage report not found. Skipping Codecov upload."
+           exit 0
+        fi
 
     - name: Upload coverage reports to Codecov
-      if: ${{ inputs.codecov == true }}
+      if: ${{ inputs.codecov_token != '' && inputs.testcontainer == 'quay.io/tembo/pg17-pgmq' }}
       uses: codecov/codecov-action@v5
       with:
         token: ${{ inputs.codecov_token }}
