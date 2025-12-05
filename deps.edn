@@ -22,7 +22,7 @@
                                 integrant/repl                       {:mvn/version "0.5.0"}
                                 pjstadig/humane-test-output          {:mvn/version "0.11.0"}
                                 org.clojure/tools.namespace          {:mvn/version "1.5.0"}
-                                org.clojure/test.check               {:mvn/version "1.1.1"}
+                                org.clojure/test.check               {:mvn/version "1.1.2"}
                                 com.lambdaisland/classpath           {:mvn/version "0.6.58"}
                                 org.testcontainers/postgresql        {:mvn/version "1.21.3"}}
                   :exec-fn      kaocha.runner/exec-fn
