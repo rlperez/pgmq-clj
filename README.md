@@ -85,7 +85,7 @@ clj -M:upgrade
     -  [`->pgobject`](#com.thirstysink.pgmq-clj.db.adapters.hikari-adapter/->pgobject) - Transforms Clojure data to a PGobject <code>x</code> that contains the data as JSON.
     -  [`<-pgobject`](#com.thirstysink.pgmq-clj.db.adapters.hikari-adapter/<-pgobject) - Transform PGobject <code>v</code> containing <code>json</code> or <code>jsonb</code> value to Clojure data.
     -  [`ensure-pgmq-extension`](#com.thirstysink.pgmq-clj.db.adapters.hikari-adapter/ensure-pgmq-extension) - Checks the database to verify that the <code>pgmq</code> extension is installed using the <code>adapter</code>.
-    -  [`make-hikari-adapter`](#com.thirstysink.pgmq-clj.db.adapters.hikari-adapter/make-hikari-adapter) - Create a new <code>HikariAdapter</code> instance.
+    -  [`make-hikari-adapter`](#com.thirstysink.pgmq-clj.db.adapters.hikari-adapter/make-hikari-adapter) - Create a new [<code>HikariAdapter</code>](#com.thirstysink.pgmq-clj.db.adapters.hikari-adapter/hikariadapter) instance.
 -  [`com.thirstysink.pgmq-clj.instrumentation`](#com.thirstysink.pgmq-clj.instrumentation) 
     -  [`disable-instrumentation`](#com.thirstysink.pgmq-clj.instrumentation/disable-instrumentation) - Disables <code>clojure.specs.alpha</code> specs instrumentation.
     -  [`enable-instrumentation`](#com.thirstysink.pgmq-clj.instrumentation/enable-instrumentation) - Enables <code>clojure.specs.alpha</code> specs instrumentation.
