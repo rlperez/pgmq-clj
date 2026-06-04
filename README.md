@@ -109,12 +109,12 @@ clj -M:upgrade
 Function.
 
 Archives messages `msg-ids` in a queue named `queue-name` using a given `adapter`.
-  This will remove the message from `queue-name` and place it in a archive table
-  which is named `a_{queue-name}`.
+This will remove the message from `queue-name` and place it in a archive table
+which is named `a_{queue-name}`.
 
-  Example:
-  (core/archive-messages adapter "test-queue" [3])
-  ;; => ()
+Example:
+(core/archive-messages adapter "test-queue" [3])
+;; => ()
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L162-L173">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.core/create-queue">`create-queue`</a>
@@ -125,11 +125,11 @@ Function.
 
 Create a queue named `queue-name` using a given `adapter`.
 
-  Example:
-  ```clojure
-  (core/create-queue adapter "test-queue")
-  ;; => nil
-  ```
+Example:
+```clojure
+(core/create-queue adapter "test-queue")
+;; => nil
+```
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L9-L20">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.core/delete-message">`delete-message`</a>
@@ -139,11 +139,11 @@ Create a queue named `queue-name` using a given `adapter`.
 Function.
 
 Permanently deletes message with id `msg-id` in the queue
-  named `queue-name` using a given `adapter`.
+named `queue-name` using a given `adapter`.
 
-  Example:
-   (core/delete-message adapter "test-queue" 3)
-   ;; => true
+Example:
+ (core/delete-message adapter "test-queue" 3)
+ ;; => true
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L132-L142">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.core/delete-message-batch">`delete-message-batch`</a>
@@ -154,9 +154,9 @@ Function.
 
 Deletes all `msg-ids` messages in queue `queue-name` using a given `adapter`.
 
-  Example:
-  (core/delete-message-batch adapter "test-queue" [2 5 6])
-  ;; => [2 5 6]
+Example:
+(core/delete-message-batch adapter "test-queue" [2 5 6])
+;; => [2 5 6]
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L203-L212">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.core/drop-queue">`drop-queue`</a>
@@ -167,11 +167,11 @@ Function.
 
 Drop queue named `queue-name` using a given `adapter`.
 
-  Example:
-  ```clojure
-  (core/drop-queue adapter "test-queue-2")
-  ;; => true
-  ```
+Example:
+```clojure
+(core/drop-queue adapter "test-queue-2")
+;; => true
+```
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L22-L33">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.core/list-queues">`list-queues`</a>
@@ -181,23 +181,23 @@ Drop queue named `queue-name` using a given `adapter`.
 Function.
 
 List all queues using a given `adapter`.
-  Example:
-  (core/list-queues adapter)
-  ;; => [{:queue-name "test-queue",
-    :is-partitioned false,
-    :is-unlogged false,
-    :created-at
-    #object[java.time.Instant 0x680b0f16 "2025-03-20T01:01:42.842248Z"]}
-   {:queue-name "test-queue-2",
-    :is-partitioned false,
-    :is-unlogged false,
-    :created-at
-    #object[java.time.Instant 0x45e79bdf "2025-03-20T01:01:46.292274Z"]}
-   {:queue-name "test-queue-3",
-    :is-partitioned false,
-    :is-unlogged false,
-    :created-at
-    #object[java.time.Instant 0x19767429 "2025-03-20T01:01:54.665295Z"]}]
+Example:
+(core/list-queues adapter)
+;; => [{:queue-name "test-queue",
+  :is-partitioned false,
+  :is-unlogged false,
+  :created-at
+  #object[java.time.Instant 0x680b0f16 "2025-03-20T01:01:42.842248Z"]}
+ {:queue-name "test-queue-2",
+  :is-partitioned false,
+  :is-unlogged false,
+  :created-at
+  #object[java.time.Instant 0x45e79bdf "2025-03-20T01:01:46.292274Z"]}
+ {:queue-name "test-queue-3",
+  :is-partitioned false,
+  :is-unlogged false,
+  :created-at
+  #object[java.time.Instant 0x19767429 "2025-03-20T01:01:54.665295Z"]}]
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L49-L71">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.core/pop-message">`pop-message`</a>
@@ -207,17 +207,17 @@ List all queues using a given `adapter`.
 Function.
 
 Pops one message from the queue named `queue-name` using a given `adapter`. The side-effect of
-  this function is equivalent to reading and deleting a message. See also
-  [[read-message]] and [[delete-message]].
+this function is equivalent to reading and deleting a message. See also
+[[read-message]] and [[delete-message]].
 
-  Example:
-  (core/pop-message adapter "test-queue")
-  ;; => {:msg-id 1,
-         :read-ct 0,
-         :enqueued-at #object[java.time.Instant 0x79684534 "2025-03-20T01:29:15.298975Z"],
-         :vt #object[java.time.Instant 0x391acb50 "2025-03-20T01:30:45.300696Z"],
-         :message {:user-id "0f83fbeb-345b-41ca-bbec-3bace0cff5b4", :order-count 12},
-         :headers {:TENANT "b5bda77b-8283-4a6d-8de8-40a5041a60ee"}
+Example:
+(core/pop-message adapter "test-queue")
+;; => {:msg-id 1,
+       :read-ct 0,
+       :enqueued-at #object[java.time.Instant 0x79684534 "2025-03-20T01:29:15.298975Z"],
+       :vt #object[java.time.Instant 0x391acb50 "2025-03-20T01:30:45.300696Z"],
+       :message {:user-id "0f83fbeb-345b-41ca-bbec-3bace0cff5b4", :order-count 12},
+       :headers {:TENANT "b5bda77b-8283-4a6d-8de8-40a5041a60ee"}
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L144-L160">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.core/purge-queue">`purge-queue`</a>
@@ -227,13 +227,13 @@ Pops one message from the queue named `queue-name` using a given `adapter`. The 
 Function.
 
 Purge queue named `queue-name` contents using a given `adapter` then
-   and return count of purged items.
+and return count of purged items.
 
-   Example:
-   ```clojure
-   (c/purge-queue adapter queue-name)
-   ;; => 2
-   ```
+Example:
+```clojure
+(c/purge-queue adapter queue-name)
+;; => 2
+```
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L35-L47">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.core/read-message">`read-message`</a>
@@ -243,39 +243,39 @@ Purge queue named `queue-name` contents using a given `adapter` then
 Function.
 
 Read a `quantity` of messages from `queue-name` marking them invisible for
-  `visible_time` seconds using a given `adapter`. This function supports the
-  ability to `filter` messages received when making a read request.
+`visible_time` seconds using a given `adapter`. This function supports the
+ability to `filter` messages received when making a read request.
 
-  Here are some examples of how this conditional works:
-  - If conditional is an empty JSON object ('{}'::jsonb), the condition always evaluates to TRUE, and all messages are considered matching.
+Here are some examples of how this conditional works:
+- If conditional is an empty JSON object ('{}'::jsonb), the condition always evaluates to TRUE, and all messages are considered matching.
 
 
-  - If conditional is a JSON object with a single key-value pair, such as {'key': 'value'}, the condition checks if the message column contains a JSON object with the same key-value pair. For example:
-  ```
-  message = {'key': 'value', 'other_key': 'other_value'}: // matches
-  message = {'other_key': 'other_value'}: // does not match
-  ```
+- If conditional is a JSON object with a single key-value pair, such as {'key': 'value'}, the condition checks if the message column contains a JSON object with the same key-value pair. For example:
+```
+message = {'key': 'value', 'other_key': 'other_value'}: // matches
+message = {'other_key': 'other_value'}: // does not match
+```
 
-  - If conditional is a JSON object with multiple key-value pairs, such as {'key1': 'value1', 'key2': 'value2'}, the condition checks if the message column contains a JSON object with all the specified key-value pairs. For example:
-  ```
-  message = {'key1': 'value1', 'key2': 'value2', 'other_key': 'other_value'}: // matches
-  message = {'key1': 'value1', 'other_key': 'other_value'}: // does not match
-  ```
+- If conditional is a JSON object with multiple key-value pairs, such as {'key1': 'value1', 'key2': 'value2'}, the condition checks if the message column contains a JSON object with all the specified key-value pairs. For example:
+```
+message = {'key1': 'value1', 'key2': 'value2', 'other_key': 'other_value'}: // matches
+message = {'key1': 'value1', 'other_key': 'other_value'}: // does not match
+```
 
-  Some examples of conditional JSONB values and their effects on the query:
-  * `{}`: matches all messages
-  * `{'type': 'error'}`: matches messages with a type key equal to 'error'
-  * `{'type': 'error', 'severity': 'high'}`: matches messages with both type equal to 'error' and severity equal to 'high'
-  * `{'user_id': 123}`: matches messages with a user_id key equal to 123
+Some examples of conditional JSONB values and their effects on the query:
+* `{}`: matches all messages
+* `{'type': 'error'}`: matches messages with a type key equal to 'error'
+* `{'type': 'error', 'severity': 'high'}`: matches messages with both type equal to 'error' and severity equal to 'high'
+* `{'user_id': 123}`: matches messages with a user_id key equal to 123
 
-  Example:
-  (core/read-message adapter "test-queue" 10 88 nil)
-  ;; => ({:msg-id 2,
-          :read-ct 1,
-          :enqueued-at #object[java.time.Instant 0x5f794b3d "2025-03-21T01:14:00.831673Z"],
-          :vt #object[java.time.Instant 0x3fcde164 "2025-03-21T01:15:32.988540Z"],
-          :message {:user-id "0f83fbeb-345b-41ca-bbec-3bace0cff5b4", :order-count 12},
-          :headers {:TENANT "b5bda77b-8283-4a6d-8de8-40a5041a60ee"}})
+Example:
+(core/read-message adapter "test-queue" 10 88 nil)
+;; => ({:msg-id 2,
+        :read-ct 1,
+        :enqueued-at #object[java.time.Instant 0x5f794b3d "2025-03-21T01:14:00.831673Z"],
+        :vt #object[java.time.Instant 0x3fcde164 "2025-03-21T01:15:32.988540Z"],
+        :message {:user-id "0f83fbeb-345b-41ca-bbec-3bace0cff5b4", :order-count 12},
+        :headers {:TENANT "b5bda77b-8283-4a6d-8de8-40a5041a60ee"}})
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L92-L130">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.core/send-message">`send-message`</a>
@@ -285,16 +285,16 @@ Read a `quantity` of messages from `queue-name` marking them invisible for
 Function.
 
 Send one message to a queue `queue-name` with a `payload`
-  that will not be read for `delay` seconds using a given `adapter`.
-  A `delay` of 0 indicates it may be read immediately.
+that will not be read for `delay` seconds using a given `adapter`.
+A `delay` of 0 indicates it may be read immediately.
 
-  Example Payloads:
-  - `{:data {:foo "bad"} :headers {:x-data "baz"}}`
-  - `{:data "feed" :headers {:version "3"}}`
+Example Payloads:
+- `{:data {:foo "bad"} :headers {:x-data "baz"}}`
+- `{:data "feed" :headers {:version "3"}}`
 
-  Example:
-  (core/send-message adapter "test-queue" {:data {:order-count 12 :user-id "0f83fbeb-345b-41ca-bbec-3bace0cff5b4"} :headers {:TENANT "b5bda77b-8283-4a6d-8de8-40a5041a60ee"}} 90)
-  ;; => 1
+Example:
+(core/send-message adapter "test-queue" {:data {:order-count 12 :user-id "0f83fbeb-345b-41ca-bbec-3bace0cff5b4"} :headers {:TENANT "b5bda77b-8283-4a6d-8de8-40a5041a60ee"}} 90)
+;; => 1
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L73-L90">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.core/send-message-batch">`send-message-batch`</a>
@@ -304,19 +304,19 @@ Send one message to a queue `queue-name` with a `payload`
 Function.
 
 Sends `payload` to the queue named `queue-name` as a collection of messages
-  that cannot be read for `delay` seconds using a given `adapter`. The payload
-  should be a sequence of valid JSON objects. See also [[send-message]].
+that cannot be read for `delay` seconds using a given `adapter`. The payload
+should be a sequence of valid JSON objects. See also [[send-message]].
 
-  Example Payloads:
-   - `[{:data {:foo "bar"} :headers {:x-data "bat"}}]`
-   - `[{:data 10002 :headers {}} {:data "feed" :headers {:version "2"}} ]`
-  Example:
-  (core/send-message-batch adapter
-                               "test-queue"
-                               [{:data {:order-count 12 :user-id "0f83fbeb-345b-41ca-bbec-3bace0cff5b4"} :headers {:X-SESS-ID "b5bda77b-8283-4a6d-8de8-40a5041a60ee"}}
-                                {:data {:order-count 12 :user-id "da04bf11-018f-45c4-908f-62c33b6e8aa6"} :headers {:X-SESS-ID "b0ef0d6a-e587-4c28-b995-1efe8cb31c9e"}}]
-                               15)
-  ;; => [5 6]
+Example Payloads:
+ - `[{:data {:foo "bar"} :headers {:x-data "bat"}}]`
+ - `[{:data 10002 :headers {}} {:data "feed" :headers {:version "2"}} ]`
+Example:
+(core/send-message-batch adapter
+                             "test-queue"
+                             [{:data {:order-count 12 :user-id "0f83fbeb-345b-41ca-bbec-3bace0cff5b4"} :headers {:X-SESS-ID "b5bda77b-8283-4a6d-8de8-40a5041a60ee"}}
+                              {:data {:order-count 12 :user-id "da04bf11-018f-45c4-908f-62c33b6e8aa6"} :headers {:X-SESS-ID "b0ef0d6a-e587-4c28-b995-1efe8cb31c9e"}}]
+                             15)
+;; => [5 6]
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/core.clj#L181-L201">Source</a></sub></p>
 
 -----
@@ -393,8 +393,8 @@ Wrap a function `f` in a database transaction using `this`.
 Function.
 
 Transforms Clojure data to a PGobject `x` that contains the data as
-  JSON. PGObject type defaults to `jsonb` but can be changed via
-  metadata key `:pgtype`
+JSON. PGObject type defaults to `jsonb` but can be changed via
+metadata key `:pgtype`
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/db/adapters/hikari_adapter.clj#L79-L87">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.db.adapters.hikari-adapter/<-pgobject">`<-pgobject`</a>
@@ -413,10 +413,10 @@ Transform PGobject `v` containing `json` or `jsonb` value to Clojure data.
 Function.
 
 Checks the database to verify that the `pgmq` extension is installed
-  using the `adapter`. If it is not then it will throw an exception.
-  Example:
-  (hikari/ensure-pgmq-extension adapter)
-  ;; => nil
+using the `adapter`. If it is not then it will throw an exception.
+Example:
+(hikari/ensure-pgmq-extension adapter)
+;; => nil
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/db/adapters/hikari_adapter.clj#L121-L131">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.db.adapters.hikari-adapter/make-hikari-adapter">`make-hikari-adapter`</a>
@@ -426,22 +426,22 @@ Checks the database to verify that the `pgmq` extension is installed
 Function.
 
 Create a new [`HikariAdapter`](#com.thirstysink.pgmq-clj.db.adapters.hikari-adapter/hikariadapter) instance. The argument `config`
-  provides database connection values. See https://github.com/tomekw/hikari-cp
-  for additional details on the configuration options.
+provides database connection values. See https://github.com/tomekw/hikari-cp
+for additional details on the configuration options.
 
-  | Setting           | Description                                                                                                  |
-  | :---------------- | :----------------------------------------------------------------------------------------------------------- |
-  | jdbc-url          | This property sets the JDBC connection URL.                                                                            |
-  | username          | This property sets the default authentication username used when obtaining Connections from the underlying driver.     |
-  | password          | This property sets the default authentication password used when obtaining Connections from the underlying driver.     |
-  | maximum-pool-size | This property controls the maximum size that the pool is allowed to reach, including both idle and in-use connections. |
-  | minimum-idle      | This property controls the minimum number of idle connections that HikariCP tries to maintain in the pool.             |
+| Setting           | Description                                                                                                  |
+| :---------------- | :----------------------------------------------------------------------------------------------------------- |
+| jdbc-url          | This property sets the JDBC connection URL.                                                                            |
+| username          | This property sets the default authentication username used when obtaining Connections from the underlying driver.     |
+| password          | This property sets the default authentication password used when obtaining Connections from the underlying driver.     |
+| maximum-pool-size | This property controls the maximum size that the pool is allowed to reach, including both idle and in-use connections. |
+| minimum-idle      | This property controls the minimum number of idle connections that HikariCP tries to maintain in the pool.             |
 
-  Example:
-  ```clojure
-  (def adapter (hikari/make-hikari-adapter {:jdbc-url "jdbc:postgresql://0.0.0.0:5432/postgres" :username "postgres" :password "postgres"}))
-  ;; => #'user/adapter
-  ```
+Example:
+```clojure
+(def adapter (hikari/make-hikari-adapter {:jdbc-url "jdbc:postgresql://0.0.0.0:5432/postgres" :username "postgres" :password "postgres"}))
+;; => #'user/adapter
+```
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/db/adapters/hikari_adapter.clj#L133-L160">Source</a></sub></p>
 
 -----
@@ -460,10 +460,10 @@ Create a new [`HikariAdapter`](#com.thirstysink.pgmq-clj.db.adapters.hikari-adap
 Function.
 
 Disables `clojure.specs.alpha` specs instrumentation. If
-  no namespace `ns` is provided it will disable instrumentation
-  for [`com.thirstysink.pgmq-clj.core`](#com.thirstysink.pgmq-clj.core).
+no namespace `ns` is provided it will disable instrumentation
+for [`com.thirstysink.pgmq-clj.core`](#com.thirstysink.pgmq-clj.core).
 
-  [Learn more](https://github.com/clojure/spec.alpha)
+[Learn more](https://github.com/clojure/spec.alpha)
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/instrumentation.clj#L26-L36">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.instrumentation/enable-instrumentation">`enable-instrumentation`</a>
@@ -474,10 +474,10 @@ Disables `clojure.specs.alpha` specs instrumentation. If
 Function.
 
 Enables `clojure.specs.alpha` specs instrumentation. If
-  no namespace `ns` is provided it will instrument
-  [`com.thirstysink.pgmq-clj.core`](#com.thirstysink.pgmq-clj.core).
+no namespace `ns` is provided it will instrument
+[`com.thirstysink.pgmq-clj.core`](#com.thirstysink.pgmq-clj.core).
 
-  [Learn more](https://github.com/clojure/spec.alpha)
+[Learn more](https://github.com/clojure/spec.alpha)
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/instrumentation.clj#L15-L24">Source</a></sub></p>
 
 ## <a name="com.thirstysink.pgmq-clj.instrumentation/instrumentation-enabled?">`instrumentation-enabled?`</a>
@@ -486,8 +486,8 @@ Enables `clojure.specs.alpha` specs instrumentation. If
 
 
 A flag that indicates if instrumentation is enabled.
-  This is determined by the value of the environment variable `PGMQCLJ_INSTRUMENTAION_ENABLED`.
-  If the environment variable is set, the value will be true; otherwise, false.
+This is determined by the value of the environment variable `PGMQCLJ_INSTRUMENTAION_ENABLED`.
+If the environment variable is set, the value will be true; otherwise, false.
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/instrumentation.clj#L4-L8">Source</a></sub></p>
 
 -----
@@ -504,9 +504,9 @@ A flag that indicates if instrumentation is enabled.
 
 
 Returns a JSON-encoding String for the given Clojure object. Takes an
-  optional date format string that Date objects will be encoded with.
+optional date format string that Date objects will be encoded with.
 
-  The default date format (in UTC) is: `yyyy-MM-dd'T'HH:mm:ss'Z'`
+The default date format (in UTC) is: `yyyy-MM-dd'T'HH:mm:ss'Z'`
 <p><sub><a href="/blob/main/src/com/thirstysink/pgmq_clj/json.clj#L4-L9">Source</a></sub></p>
 
 -----
